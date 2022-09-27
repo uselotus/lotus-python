@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+backoff = "*"
+monotonic = "*"
+requests = "*"
+python-dateutil = "*"
+pytest-mock = "*"
+six = "*"
+
+[dev-packages]
+black = "*"
+mock = "*"
+pytest = "*"
+pylint = "*"
+flake8 = "*"
+coverage = "*"
+twine = "*"
+
+[requires]
+python_version = "3.10"
