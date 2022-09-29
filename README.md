@@ -98,6 +98,29 @@ lotus.cancel_subscription(
   bill_now='True')
 ```
 
+
+### Get Customer Access
+
+Checks whether a customer has access to a specific feature or enough usage in their plan to register an event. This is useful if you want to gate access to certain features in your app based on usage.
+
+A `get_customer_access` call requires
+- `customer_id` the id you defined in your backend for the corresponding customer and the same id that you passed into Lotus when creating the customer
+
+AND EITHER
+- `feature_name` name of the feature you want to check access for.
+
+OR
+
+- `event_name` name of the event you want to check access for. In the backend we'll check whether any of the plan components associated with the event have surpassed their limit.
+
+For example:
+```python
+lotus.get_customer_access(
+  customer_id='customer123', 
+  event_name='api_call'
+)
+```
+
 ## Thank you
 
 This library is largely based on the `posthog-python` package.
