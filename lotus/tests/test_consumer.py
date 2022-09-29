@@ -1,13 +1,8 @@
 import json
 import time
+from queue import Queue
 
 import mock
-
-try:
-    from queue import Queue
-except ImportError:
-    from Queue import Queue
-
 from lotus.consumer import MAX_MSG_SIZE, Consumer
 from lotus.request import APIError
 
@@ -41,7 +36,7 @@ class TestConsumer:
     def test_upload(self, track_event_example):
         q = Queue()
         consumer = Consumer(q, "testsecret")
-        track = track_event_example
+        track = track_event_example()
         with mock.patch("lotus.consumer.post") as mock_post:
             q.put(track)
             success = consumer.upload()
@@ -57,8 +52,7 @@ class TestConsumer:
         with mock.patch("lotus.consumer.post") as mock_post:
             consumer.start()
             for i in range(0, 3):
-                track = track_event_example
-                track["idempotency_key"] = "idempotency_key_%d" % i
+                track = track_event_example()
                 q.put(track)
                 time.sleep(flush_interval * 1.1)
             assert mock_post.call_count == 3
@@ -75,8 +69,7 @@ class TestConsumer:
         with mock.patch("lotus.consumer.post") as mock_post:
             consumer.start()
             for i in range(0, flush_at * 2):
-                track = track_event_example
-                track["idempotency_key"] = "idempotency_key_%d" % i
+                track = track_event_example()
                 q.put(track)
             time.sleep(flush_interval * 1.1)
             assert mock_post.call_count == 2
@@ -89,7 +82,7 @@ class TestConsumer:
 
         with mock.patch("lotus.consumer.post", mock.Mock(side_effect=mock_post)):
             consumer = Consumer(None, "testsecret")
-            track = track_event_example
+            track = track_event_example()
             consumer.request([track])
 
         assert mock_post.call_count == 1
@@ -105,7 +98,7 @@ class TestConsumer:
         mock_post.call_count = 0
 
         with mock.patch("lotus.consumer.post", mock.Mock(side_effect=mock_post)):
-            track = track_event_example
+            track = track_event_example()
             # request() should succeed if the number of exceptions raised is
             # less than the retries paramater.
             if exception_count <= consumer.retries:
@@ -128,7 +121,7 @@ class TestConsumer:
         # we should retry on general errors
         consumer = Consumer(None, "testsecret")
         self._test_request_retry(
-            consumer, Exception("generic exception"), 2, track_event_example
+            consumer, Exception("generic exception"), 2, track_event_example()
         )
 
         # we should retry on server errors
@@ -137,20 +130,23 @@ class TestConsumer:
             consumer,
             APIError(500, "code", "Internal Server Error"),
             2,
-            track_event_example,
+            track_event_example(),
         )
 
         # we should retry on HTTP 429 errors
         consumer = Consumer(None, "testsecret")
         self._test_request_retry(
-            consumer, APIError(429, "code", "Too Many Requests"), 2, track_event_example
+            consumer,
+            APIError(429, "code", "Too Many Requests"),
+            2,
+            track_event_example(),
         )
 
         # we should NOT retry on other client errors
         consumer = Consumer(None, "testsecret")
         api_error = APIError(400, "code", "Client Errors")
         try:
-            self._test_request_retry(consumer, api_error, 1, track_event_example)
+            self._test_request_retry(consumer, api_error, 1, track_event_example())
         except APIError:
             pass
         else:
@@ -162,7 +158,7 @@ class TestConsumer:
             consumer,
             APIError(500, "code", "Internal Server Error"),
             3,
-            track_event_example,
+            track_event_example(),
         )
 
     def test_pause(self):
@@ -173,7 +169,7 @@ class TestConsumer:
     def test_max_batch_size(self, track_event_example):
         q = Queue()
         consumer = Consumer(q, "testsecret", flush_at=100000, flush_interval=3)
-        track = track_event_example
+        track = track_event_example()
         msg_size = len(json.dumps(track).encode())
         # number of messages in a maximum-size batch
         n_msgs = int(475000 / msg_size)

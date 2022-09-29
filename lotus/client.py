@@ -49,24 +49,31 @@ class Client(object):
             "track_event": {
                 "url": "/api/track/",
                 "name": "track_event",
+                "method": "POST",
             },
             "create_customer": {
                 "url": "/api/customers/",
                 "name": "create_customer",
+                "method": "POST",
             },
             "create_subscription": {
                 "url": "/api/subscriptions/",
                 "name": "create_subscription",
+                "method": "POST",
             },
             "cancel_subscription": {
                 "url": "/api/cancel_subscription/",
                 "name": "cancel_subscription",
+                "method": "POST",
+            },
+            "get_customer_access": {
+                "url": "/api/customer_access/",
+                "name": "get_customer_access",
+                "method": "GET",
             },
         }
 
-        self.queue = {}
-        for _, v in self.operations.items():
-            self.queue[v["name"]] = Queue(max_queue_size)
+        self.queue = Queue(max_queue_size)
         self.api_key = api_key
         self.on_error = on_error
         self.debug = debug
@@ -92,29 +99,25 @@ class Client(object):
                 atexit.register(self.join)
             for n in range(thread):
                 self.consumers = []
-                for operation, queue in self.queue.items():
-                    if not host:
-                        host = "https://www.uselotus.app"
-                    endpoint_host = (
-                        remove_trailing_slash(host)
-                        + self.operations[operation]["url"]
-                    )
-                    consumer = Consumer(
-                        queue,
-                        api_key,
-                        host=endpoint_host,
-                        on_error=on_error,
-                        flush_at=flush_at,
-                        flush_interval=flush_interval,
-                        gzip=gzip,
-                        retries=max_retries,
-                        timeout=timeout,
-                    )
-                    self.consumers.append(consumer)
+                if not host:
+                    host = "https://www.uselotus.app"
+                endpoint_host = host + "/api/track/"
+                consumer = Consumer(
+                    self.queue,
+                    api_key,
+                    host=endpoint_host,
+                    on_error=on_error,
+                    flush_at=flush_at,
+                    flush_interval=flush_interval,
+                    gzip=gzip,
+                    retries=max_retries,
+                    timeout=timeout,
+                )
+                self.consumers.append(consumer)
 
-                    # if we've disabled sending, just don't start the consumer
-                    if send:
-                        consumer.start()
+                # if we've disabled sending, just don't start the consumer
+                if send:
+                    consumer.start()
 
     def track_event(
         self,
@@ -175,7 +178,7 @@ class Client(object):
         if balance:
             msg["balance"] = balance
 
-        return self._enqueue(msg)
+        return self._enqueue(msg, block=True)
 
     def create_subscription(
         self,
@@ -212,7 +215,7 @@ class Client(object):
         if subscription_uid:
             msg["subscription_uid"] = subscription_uid
 
-        return self._enqueue(msg)
+        return self._enqueue(msg, block=True)
 
     def cancel_subscription(
         self,
@@ -228,13 +231,36 @@ class Client(object):
         if bill_now:
             msg["bill_now"] = bill_now
 
-        return self._enqueue(msg)
+        return self._enqueue(msg, block=True)
 
-    def _enqueue(self, msg):
+    def get_customer_access(
+        self,
+        customer_id=None,
+        event_name=None,
+        feature_name=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+        if not event_name and not feature_name:
+            raise ValueError("Must provide event_name or feature_name")
+        elif event_name and feature_name:
+            raise ValueError("Can't provide both event_name and feature_name")
+
+        msg = {
+            "$type": "get_customer_access",
+            "customer_id": customer_id,
+        }
+        if event_name:
+            msg["event_name"] = event_name
+        elif feature_name:
+            msg["feature_name"] = feature_name
+
+        return self._enqueue(msg, block=True)
+
+    def _enqueue(self, msg, block=False):
         """Push a new `msg` onto the queue, return `(success, msg)`"""
 
         msg["library"] = "lotus-python"
-        msg['library_version'] = VERSION
+        msg["library_version"] = VERSION
 
         if "idempotency_id" in msg:
             msg["idempotency_id"] = stringify_id(msg.get("idempotency_id", None))
@@ -248,19 +274,29 @@ class Client(object):
         if not self.send:
             return True, msg
 
-        if self.sync_mode:
+        if self.sync_mode or block:
             operation = msg["$type"]
+            endpoint_url = self.operations[operation]["url"]
             if self.host:
-                endpoint_host = self.host + "/" + operation + "/"
+                endpoint_host = self.host + endpoint_url
             else:
-                endpoint_host = None
-            self.log.debug("enqueued with blocking %s.", msg["$type"])
-            post(endpoint_host, gzip=self.gzip, timeout=self.timeout, batch=[msg])
+                endpoint_host = "https://www.uselotus.app" + endpoint_url
+            self.log.debug(
+                "enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"]
+            )
+            get = self.operations[operation]["method"] == "GET"
+            post(
+                endpoint_host,
+                api_key=self.api_key,
+                gzip=self.gzip,
+                timeout=self.timeout,
+                body=msg,
+                get=get,
+            )
 
             return True, msg
         try:
-            operation = msg["$type"]
-            self.queue[operation].put(msg, block=False)
+            self.queue.put(msg, block=False)
             self.log.debug("enqueued %s.", msg["$type"])
             return True, msg
         except Full:
@@ -269,11 +305,11 @@ class Client(object):
 
     def flush(self):
         """Forces a flush from the internal queue to the server"""
-        for operation, queue in self.queue.items():
-            size = queue.qsize()
-            queue.join()
-            # Note that this message may not be precise, because of threading.
-            self.log.debug("successfully flushed about %s items.", size)
+        queue = self.queue
+        size = queue.qsize()
+        queue.join()
+        # Note that this message may not be precise, because of threading.
+        self.log.debug("successfully flushed about %s items.", size)
 
     def join(self):
         """Ends the consumer thread once the queue is empty.

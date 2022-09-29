@@ -70,7 +70,7 @@ class TestUtils(unittest.TestCase):
             self.assertEqual(cleaned["fn"], None)
 
     def test_remove_slash(self):
-        #SHOUTOUT POSTHOG!!
+        # SHOUTOUT POSTHOG!!
         self.assertEqual(
             "http://posthog.io", utils.remove_trailing_slash("http://posthog.io/")
         )

@@ -14,10 +14,10 @@ from lotus.version import VERSION
 _session = sessions.Session()
 
 
-def post(host, api_key, gzip=False, timeout=15, **kwargs):
+def post(host, api_key, gzip=False, timeout=15, body={}, get=False):
     """Post the `kwargs` to the API"""
     log = logging.getLogger("lotus")
-    body = kwargs
+    body = body
     body["sentAt"] = datetime.utcnow().replace(tzinfo=tzutc()).isoformat()
     url = host
     if not url.startswith("http"):
@@ -26,7 +26,7 @@ def post(host, api_key, gzip=False, timeout=15, **kwargs):
     log.debug("making request: %s", data)
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": 'lotus-python/' + VERSION,
+        "User-Agent": "lotus-python/" + VERSION,
         "X-API-KEY": api_key,
     }
     if gzip:
@@ -38,7 +38,10 @@ def post(host, api_key, gzip=False, timeout=15, **kwargs):
             gz.write(data.encode("utf-8"))
         data = buf.getvalue()
 
-    res = _session.post(url, data=data, headers=headers, timeout=timeout)
+    if get:
+        res = _session.get(url, headers=headers, params=body, timeout=timeout)
+    else:
+        res = _session.post(url, data=data, headers=headers, timeout=timeout)
 
     if res.status_code == 200 or res.status_code == 201:
         log.debug("data uploaded successfully")
@@ -47,20 +50,19 @@ def post(host, api_key, gzip=False, timeout=15, **kwargs):
     try:
         payload = res.json()
         log.debug("received response: %s", payload)
-        raise APIError(res.status_code, payload["code"], payload["message"])
+        raise APIError(res.status_code, payload)
     except ValueError:
-        raise APIError(res.status_code, "unknown", res.text)
+        raise APIError(res.status_code, res.text)
 
 
 class APIError(Exception):
-    def __init__(self, status, code, message):
-        self.message = message
+    def __init__(self, status, payload):
         self.status = status
-        self.code = code
+        self.payload = payload
 
     def __str__(self):
-        msg = "[Lotus] {0}: {1} ({2})"
-        return msg.format(self.code, self.message, self.status)
+        msg = "[Lotus] {0}: {1}"
+        return msg.format(self.status, self.payload)
 
 
 class DatetimeSerializer(json.JSONEncoder):

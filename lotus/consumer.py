@@ -135,6 +135,12 @@ class Consumer(Thread):
             backoff.expo, Exception, max_tries=self.retries + 1, giveup=fatal_exception
         )
         def send_request():
-            post(self.host, self.api_key, gzip=self.gzip, timeout=self.timeout, batch=batch)
+            post(
+                self.host,
+                self.api_key,
+                gzip=self.gzip,
+                timeout=self.timeout,
+                body={"batch": batch},
+            )
 
         send_request()
