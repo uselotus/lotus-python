@@ -32,14 +32,14 @@ def create_subscription_example():
         "customer_id": "customer_id",
         "billing_plan_id": "my_id",
         "start_date": "2020-09-03",
-        "subscription_uid": "subscription_uid",
+        "subscription_id": "subscription_id",
     }
 
 
 @pytest.fixture
 def cancel_subscription_example():
     return {
-        "subscription_uid": "subscription_uid",
+        "subscription_id": "subscription_id",
         "bill_now": "True",
     }
 

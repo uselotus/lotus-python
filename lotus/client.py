@@ -71,6 +71,26 @@ class Client(object):
                 "name": "get_customer_access",
                 "method": "GET",
             },
+            "get_customers": {
+                "url": "/api/customers/",
+                "name": "get_customers",
+                "method": "GET",
+            },
+            "get_current_usage": {
+                "url": "/api/draft_invoice/",
+                "name": "get_current_usage",
+                "method": "GET",
+            },
+            "get_plans": {
+                "url": "/api/plans/",
+                "name": "get_plans",
+                "method": "GET",
+            },
+            "get_subscriptions": {
+                "url": "/api/subscriptions/",
+                "name": "get_subscriptions",
+                "method": "GET",
+            },
         }
 
         self.queue = Queue(max_queue_size)
@@ -190,7 +210,7 @@ class Client(object):
         status=None,
         auto_renew=None,
         is_new=None,
-        subscription_uid=None,
+        subscription_id=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
         require("billing_plan_id", billing_plan_id, ID_TYPES)
@@ -212,24 +232,67 @@ class Client(object):
             msg["auto_renew"] = auto_renew
         if is_new:
             msg["is_new"] = is_new
-        if subscription_uid:
-            msg["subscription_uid"] = subscription_uid
+        if subscription_id:
+            msg["subscription_id"] = subscription_id
 
         return self._enqueue(msg, block=True)
 
     def cancel_subscription(
         self,
-        subscription_uid=None,
+        subscription_id=None,
         bill_now=None,
     ):
-        require("subscription_uid", subscription_uid, ID_TYPES)
+        require("subscription_id", subscription_id, ID_TYPES)
 
         msg = {
             "$type": "cancel_subscription",
-            "subscription_uid": subscription_uid,
+            "subscription_id": subscription_id,
         }
         if bill_now:
             msg["bill_now"] = bill_now
+
+        return self._enqueue(msg, block=True)
+
+    def get_current_usage(
+        self,
+        customer_id=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+
+        msg = {
+            "$type": "get_current_usage",
+            "customer_id": customer_id,
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def get_customers(
+        self,
+    ):
+
+        msg = {
+            "$type": "get_customers",
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def get_plans(
+        self,
+    ):
+
+        msg = {
+            "$type": "get_plans",
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def get_subscriptions(
+        self,
+    ):
+
+        msg = {
+            "$type": "get_subscriptions",
+        }
 
         return self._enqueue(msg, block=True)
 
@@ -258,7 +321,6 @@ class Client(object):
 
     def _enqueue(self, msg, block=False):
         """Push a new `msg` onto the queue, return `(success, msg)`"""
-
         msg["library"] = "lotus-python"
         msg["library_version"] = VERSION
 
@@ -281,11 +343,9 @@ class Client(object):
                 endpoint_host = self.host + endpoint_url
             else:
                 endpoint_host = "https://www.uselotus.app" + endpoint_url
-            self.log.debug(
-                "enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"]
-            )
+            self.log.debug("enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"])
             get = self.operations[operation]["method"] == "GET"
-            post(
+            response = post(
                 endpoint_host,
                 api_key=self.api_key,
                 gzip=self.gzip,
@@ -294,7 +354,13 @@ class Client(object):
                 get=get,
             )
 
-            return True, msg
+            try:
+                data = response.json()
+            except:
+                data = response.text
+
+            return data
+
         try:
             self.queue.put(msg, block=False)
             self.log.debug("enqueued %s.", msg["$type"])

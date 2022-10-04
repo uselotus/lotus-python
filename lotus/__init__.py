@@ -18,6 +18,10 @@ def track_event(*args, **kwargs):
     _proxy("track_event", *args, **kwargs)
 
 
+def create_customer(*args, **kwargs):
+    _proxy("create_customer", *args, **kwargs)
+
+
 def create_subscription(*args, **kwargs):
     _proxy("create_subscription", *args, **kwargs)
 
@@ -26,8 +30,24 @@ def cancel_subscription(*args, **kwargs):
     _proxy("cancel_subscription", *args, **kwargs)
 
 
-def create_customer(*args, **kwargs):
-    _proxy("create_customer", *args, **kwargs)
+def get_customer_access(*args, **kwargs):
+    return _proxy("get_customer_access", *args, **kwargs)
+
+
+def get_customers(*args, **kwargs):
+    return _proxy("get_customers", *args, **kwargs)
+
+
+def get_current_usage(*args, **kwargs):
+    return _proxy("get_current_usage", *args, **kwargs)
+
+
+def get_plans(*args, **kwargs):
+    return _proxy("get_plans", *args, **kwargs)
+
+
+def get_subscriptions(*args, **kwargs):
+    return _proxy("get_subscriptions", *args, **kwargs)
 
 
 def flush():
@@ -60,4 +80,5 @@ def _proxy(method, *args, **kwargs):
         )
 
     fn = getattr(default_client, method)
-    fn(*args, **kwargs)
+    ret = fn(*args, **kwargs)
+    return ret

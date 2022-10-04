@@ -82,7 +82,7 @@ class TestClient:
         assert success == True
         assert self.failed == False
 
-        assert msg["subscription_uid"] == "subscription_uid"
+        assert msg["subscription_id"] == "subscription_id"
         assert msg["bill_now"] == "True"
         assert msg["$type"] == "cancel_subscription"
 

@@ -42,7 +42,6 @@ def post(host, api_key, gzip=False, timeout=15, body={}, get=False):
         res = _session.get(url, headers=headers, params=body, timeout=timeout)
     else:
         res = _session.post(url, data=data, headers=headers, timeout=timeout)
-
     if res.status_code == 200 or res.status_code == 201:
         log.debug("data uploaded successfully")
         return res
