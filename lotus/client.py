@@ -46,49 +46,64 @@ class Client(object):
     ):
         require("api_key", api_key, string_types)
         self.operations = {
+            # track event
             "track_event": {
                 "url": "/api/track/",
                 "name": "track_event",
                 "method": "POST",
+            },
+            # customer
+            "get_all_customers": {
+                "url": "/api/customers/",
+                "name": "get_all_customers",
+                "method": "GET",
+            },
+            "get_customer_detail": {
+                "url": "/api/customer_detail/",
+                "name": "get_customer_detail",
+                "method": "GET",
             },
             "create_customer": {
                 "url": "/api/customers/",
                 "name": "create_customer",
                 "method": "POST",
             },
+            # subscription
             "create_subscription": {
                 "url": "/api/subscriptions/",
                 "name": "create_subscription",
                 "method": "POST",
             },
             "cancel_subscription": {
-                "url": "/api/cancel_subscription/",
+                "url": "/api/subscriptions/",
                 "name": "cancel_subscription",
-                "method": "POST",
+                "method": "PATCH",
             },
+            "get_all_subscriptions": {
+                "url": "/api/subscriptions/",
+                "name": "get_all_subscriptions",
+                "method": "GET",
+            },
+            "get_single_subscription": {
+                "url": "/api/subscriptions/",
+                "name": "get_single_subscriptions",
+                "method": "GET",
+            },
+            "change_subscription_plan": {
+                "url": "/api/subscriptions/",
+                "name": "change_subscription_plan",
+                "method": "PATCH",
+            },
+            # get access
             "get_customer_access": {
                 "url": "/api/customer_access/",
                 "name": "get_customer_access",
                 "method": "GET",
             },
-            "get_customers": {
-                "url": "/api/customers/",
-                "name": "get_customers",
-                "method": "GET",
-            },
-            "get_current_usage": {
-                "url": "/api/draft_invoice/",
-                "name": "get_current_usage",
-                "method": "GET",
-            },
+            # plans
             "get_plans": {
                 "url": "/api/plans/",
                 "name": "get_plans",
-                "method": "GET",
-            },
-            "get_subscriptions": {
-                "url": "/api/subscriptions/",
-                "name": "get_subscriptions",
                 "method": "GET",
             },
         }
@@ -171,19 +186,38 @@ class Client(object):
 
         return self._enqueue(msg)
 
+    def get_all_customers(
+        self,
+    ):
+
+        msg = {
+            "$type": "get_all_customers",
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def get_customer_detail(
+        self,
+        customer_id=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+
+        msg = {
+            "$type": "cancel_subscription",
+            "customer_id": customer_id,
+        }
+
+        return self._enqueue(msg, block=True)
+
     def create_customer(
         self,
         customer_id=None,
         customer_name=None,
-        currency=None,
-        payment_provider_id=None,
-        properties=None,
         balance=None,
     ):
         properties = properties or {}
         require("customer_id", customer_id, ID_TYPES)
         require("customer_name", customer_name, ID_TYPES)
-        require("properties", properties, dict)
 
         msg = {
             "$type": "create_customer",
@@ -191,10 +225,6 @@ class Client(object):
             "customer_id": customer_id,
             "properties": properties,
         }
-        if currency:
-            msg["currency"] = currency
-        if payment_provider_id:
-            msg["payment_provider_id"] = payment_provider_id
         if balance:
             msg["balance"] = balance
 
@@ -203,29 +233,26 @@ class Client(object):
     def create_subscription(
         self,
         customer_id=None,
-        billing_plan_id=None,
+        plan_id=None,
         start_date=None,
         end_date=None,
-        payment_provider_id=None,
         status=None,
         auto_renew=None,
         is_new=None,
         subscription_id=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
-        require("billing_plan_id", billing_plan_id, ID_TYPES)
+        require("plan_id", plan_id, ID_TYPES)
         require("start_date", start_date, ID_TYPES)
 
         msg = {
             "$type": "create_subscription",
             "start_date": start_date,
-            "billing_plan_id": billing_plan_id,
+            "plan_id": plan_id,
             "customer_id": customer_id,
         }
         if end_date:
             msg["end_date"] = end_date
-        if payment_provider_id:
-            msg["payment_provider_id"] = payment_provider_id
         if status:
             msg["status"] = status
         if auto_renew:
@@ -240,16 +267,68 @@ class Client(object):
     def cancel_subscription(
         self,
         subscription_id=None,
-        bill_now=None,
+        status=None,
+        auto_renew=None,
+        replace_immediately_type=None,
     ):
         require("subscription_id", subscription_id, ID_TYPES)
+        if status is not None:
+            assert status in ["ended"], "status must be one of 'ended'"
+            assert replace_immediately_type in [
+                "end_current_subscription_and_bill",
+                "end_current_subscription_dont_bill",
+            ], "replace_immediately_type must be one of 'end_current_subscription_and_bill', 'end_current_subscription_dont_bill' when using status"
+        msg = {
+            "$type": "cancel_subscription",
+            "$append_to_url": subscription_id,
+        }
+        if auto_renew:
+            msg["auto_renew"] = auto_renew
+
+        return self._enqueue(msg, block=True)
+
+    def get_all_subscriptions(
+        self,
+    ):
+
+        msg = {
+            "$type": "get_all_subscriptions",
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def get_single_subscription(
+        self,
+        subscription_id=None,
+    ):
+
+        msg = {
+            "$type": "get_all_subscriptions",
+            "$append_to_url": subscription_id,
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def change_subscription_plan(
+        self,
+        subscription_id=None,
+        plan_id=None,
+        replace_immediately_type=None,
+    ):
+        require("subscription_id", subscription_id, ID_TYPES)
+        require("plan_id", plan_id, ID_TYPES)
+        assert replace_immediately_type in [
+            "end_current_subscription_and_bill",
+            "end_current_subscription_dont_bill",
+            "change_subscription_plan",
+        ], "Invalid replace_immediately_type"
 
         msg = {
             "$type": "cancel_subscription",
-            "subscription_id": subscription_id,
+            "$append_to_url": subscription_id,
+            "plan_id": plan_id,
+            "replace_immediately_type": replace_immediately_type,
         }
-        if bill_now:
-            msg["bill_now"] = bill_now
 
         return self._enqueue(msg, block=True)
 
@@ -266,32 +345,12 @@ class Client(object):
 
         return self._enqueue(msg, block=True)
 
-    def get_customers(
-        self,
-    ):
-
-        msg = {
-            "$type": "get_customers",
-        }
-
-        return self._enqueue(msg, block=True)
-
     def get_plans(
         self,
     ):
 
         msg = {
             "$type": "get_plans",
-        }
-
-        return self._enqueue(msg, block=True)
-
-    def get_subscriptions(
-        self,
-    ):
-
-        msg = {
-            "$type": "get_subscriptions",
         }
 
         return self._enqueue(msg, block=True)
@@ -339,19 +398,23 @@ class Client(object):
         if self.sync_mode or block:
             operation = msg["$type"]
             endpoint_url = self.operations[operation]["url"]
+            if "$append_to_url" in msg:
+                endpoint_url = endpoint_url + msg["$append_to_url"] + "/"
+                del msg["$append_to_url"]
             if self.host:
                 endpoint_host = self.host + endpoint_url
             else:
                 endpoint_host = "https://www.uselotus.app" + endpoint_url
-            self.log.debug("enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"])
-            get = self.operations[operation]["method"] == "GET"
+            self.log.debug(
+                "enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"]
+            )
             response = post(
                 endpoint_host,
                 api_key=self.api_key,
                 gzip=self.gzip,
                 timeout=self.timeout,
                 body=msg,
-                get=get,
+                method=self.operations[operation]["method"],
             )
 
             try:

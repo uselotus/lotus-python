@@ -14,7 +14,7 @@ from lotus.version import VERSION
 _session = sessions.Session()
 
 
-def post(host, api_key, gzip=False, timeout=15, body={}, get=False):
+def post(host, api_key, gzip=False, timeout=15, body={}, method="GET"):
     """Post the `kwargs` to the API"""
     log = logging.getLogger("lotus")
     body = body
@@ -38,10 +38,12 @@ def post(host, api_key, gzip=False, timeout=15, body={}, get=False):
             gz.write(data.encode("utf-8"))
         data = buf.getvalue()
 
-    if get:
+    if method == "GET":
         res = _session.get(url, headers=headers, params=body, timeout=timeout)
+    elif method == "POST":
+        res = _session.post(url, headers=headers, data=data, timeout=timeout)
     else:
-        res = _session.post(url, data=data, headers=headers, timeout=timeout)
+        res = _session.patch(url, data=data, headers=headers, timeout=timeout)
     if res.status_code == 200 or res.status_code == 201:
         log.debug("data uploaded successfully")
         return res
