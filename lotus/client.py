@@ -101,9 +101,9 @@ class Client(object):
                 "method": "GET",
             },
             # plans
-            "get_plans": {
+            "get_all_plans": {
                 "url": "/api/plans/",
-                "name": "get_plans",
+                "name": "get_all_plans",
                 "method": "GET",
             },
         }
@@ -345,12 +345,12 @@ class Client(object):
 
         return self._enqueue(msg, block=True)
 
-    def get_plans(
+    def get_all_plans(
         self,
     ):
 
         msg = {
-            "$type": "get_plans",
+            "$type": "get_all_plans",
         }
 
         return self._enqueue(msg, block=True)

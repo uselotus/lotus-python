@@ -15,38 +15,46 @@ default_client = None
 
 
 def track_event(*args, **kwargs):
-    _proxy("track_event", *args, **kwargs)
+    return _proxy("track_event", *args, **kwargs)
+
+
+def get_all_customers(*args, **kwargs):
+    return _proxy("get_all_customers", *args, **kwargs)
+
+
+def get_customer_detail(*args, **kwargs):
+    return _proxy("get_customer_detail", *args, **kwargs)
 
 
 def create_customer(*args, **kwargs):
-    _proxy("create_customer", *args, **kwargs)
+    return _proxy("create_customer", *args, **kwargs)
 
 
 def create_subscription(*args, **kwargs):
-    _proxy("create_subscription", *args, **kwargs)
+    return _proxy("create_subscription", *args, **kwargs)
 
 
 def cancel_subscription(*args, **kwargs):
-    _proxy("cancel_subscription", *args, **kwargs)
+    return _proxy("cancel_subscription", *args, **kwargs)
+
+
+def get_all_subscriptions(*args, **kwargs):
+    return _proxy("get_all_subscriptions", *args, **kwargs)
+
+
+def get_single_subscription(*args, **kwargs):
+    return _proxy("get_single_subscription", *args, **kwargs)
+
+
+def change_subscription_plan(*args, **kwargs):
+    return _proxy("change_subscription_plan", *args, **kwargs)
 
 
 def get_customer_access(*args, **kwargs):
     return _proxy("get_customer_access", *args, **kwargs)
 
 
-def get_customers(*args, **kwargs):
-    return _proxy("get_customers", *args, **kwargs)
-
-
-def get_current_usage(*args, **kwargs):
-    return _proxy("get_current_usage", *args, **kwargs)
-
-
-def get_plans(*args, **kwargs):
-    return _proxy("get_plans", *args, **kwargs)
-
-
-def get_subscriptions(*args, **kwargs):
+def get_all_plans(*args, **kwargs):
     return _proxy("get_subscriptions", *args, **kwargs)
 
 
