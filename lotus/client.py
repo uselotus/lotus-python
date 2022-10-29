@@ -84,9 +84,9 @@ class Client(object):
                 "name": "get_all_subscriptions",
                 "method": "GET",
             },
-            "get_single_subscription": {
+            "get_subscription_detail": {
                 "url": "/api/subscriptions/",
-                "name": "get_single_subscriptions",
+                "name": "get_subscription_detail",
                 "method": "GET",
             },
             "change_subscription_plan": {
@@ -267,13 +267,12 @@ class Client(object):
     def cancel_subscription(
         self,
         subscription_id=None,
-        status=None,
-        auto_renew=None,
+        turn_off_auto_renew=None,
         replace_immediately_type=None,
     ):
         require("subscription_id", subscription_id, ID_TYPES)
-        if status is not None:
-            assert status in ["ended"], "status must be one of 'ended'"
+        assert turn_off_auto_renew is True or replace_immediately_type is not None, "Must provide either turn_off_auto_renew or replace_immediately_type"
+        if turn_off_auto_renew is None:
             assert replace_immediately_type in [
                 "end_current_subscription_and_bill",
                 "end_current_subscription_dont_bill",
@@ -282,8 +281,11 @@ class Client(object):
             "$type": "cancel_subscription",
             "$append_to_url": subscription_id,
         }
-        if auto_renew:
-            msg["auto_renew"] = auto_renew
+        if turn_off_auto_renew:
+            msg["auto_renew"] = False
+        else:
+            msg["status"] = "ended"
+            msg["replace_immediately_type"] = replace_immediately_type
 
         return self._enqueue(msg, block=True)
 
@@ -297,13 +299,13 @@ class Client(object):
 
         return self._enqueue(msg, block=True)
 
-    def get_single_subscription(
+    def get_subscription_detail(
         self,
         subscription_id=None,
     ):
 
         msg = {
-            "$type": "get_all_subscriptions",
+            "$type": "get_subscription_detail",
             "$append_to_url": subscription_id,
         }
 
