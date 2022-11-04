@@ -203,7 +203,7 @@ class Client(object):
         require("customer_id", customer_id, ID_TYPES)
 
         msg = {
-            "$type": "cancel_subscription",
+            "$type": "get_customer_detail",
             "customer_id": customer_id,
         }
 
@@ -334,18 +334,6 @@ class Client(object):
 
         return self._enqueue(msg, block=True)
 
-    def get_current_usage(
-        self,
-        customer_id=None,
-    ):
-        require("customer_id", customer_id, ID_TYPES)
-
-        msg = {
-            "$type": "get_current_usage",
-            "customer_id": customer_id,
-        }
-
-        return self._enqueue(msg, block=True)
 
     def get_all_plans(
         self,
