@@ -211,22 +211,30 @@ class Client(object):
 
     def create_customer(
         self,
-        customer_id=None,
         customer_name=None,
-        balance=None,
+        customer_id=None,
+        email=None,
+        payment_provider=None,
+        payment_provider_id=None,
     ):
         properties = properties or {}
         require("customer_id", customer_id, ID_TYPES)
-        require("customer_name", customer_name, ID_TYPES)
+        require("email", customer_name, ID_TYPES)
 
         msg = {
             "$type": "create_customer",
-            "name": customer_name,
             "customer_id": customer_id,
+            "email": email,
             "properties": properties,
         }
-        if balance:
-            msg["balance"] = balance
+        if customer_name:
+            msg["customer_name"] = customer_name
+
+        if payment_provider:
+            msg["payment_provider"] = payment_provider
+
+        if payment_provider_id:
+           msg["payment_provider_id"] = payment_provider_id
 
         return self._enqueue(msg, block=True)
 
