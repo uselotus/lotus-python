@@ -6,7 +6,7 @@ from threading import Thread
 import backoff
 import monotonic
 
-from lotus.request import APIError, DatetimeSerializer, post
+from .request import APIError, DatetimeSerializer, post
 
 # try:
 #

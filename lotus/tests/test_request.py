@@ -5,6 +5,7 @@ from datetime import date, datetime
 import mock
 import pytest
 import requests
+
 from lotus.request import DatetimeSerializer, post
 
 

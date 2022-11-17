@@ -1,8 +1,9 @@
 import unittest
 
-import lotus
 import mock
 import pytest
+
+import lotus
 
 
 class TestModule:

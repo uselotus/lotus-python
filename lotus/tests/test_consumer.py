@@ -3,6 +3,7 @@ import time
 from queue import Queue
 
 import mock
+
 from lotus.consumer import MAX_MSG_SIZE, Consumer
 from lotus.request import APIError
 
@@ -63,9 +64,7 @@ class TestConsumer:
         q = Queue()
         flush_interval = 0.5
         flush_at = 10
-        consumer = Consumer(
-            q, "testsecret", flush_at=flush_at, flush_interval=flush_interval
-        )
+        consumer = Consumer(q, "testsecret", flush_at=flush_at, flush_interval=flush_interval)
         with mock.patch("lotus.consumer.post") as mock_post:
             consumer.start()
             for i in range(0, flush_at * 2):
@@ -177,14 +176,12 @@ class TestConsumer:
         def mock_post_fn(_, data, **kwargs):
             res = mock.Mock()
             res.status_code = 200
-            assert (
-                len(data.encode()) < 500000
-            ), "batch size (%d) exceeds 500KB limit" % len(data.encode())
+            assert len(data.encode()) < 500000, "batch size (%d) exceeds 500KB limit" % len(
+                data.encode()
+            )
             return res
 
-        with mock.patch(
-            "lotus.request._session.post", side_effect=mock_post_fn
-        ) as mock_post:
+        with mock.patch("lotus.request._session.post", side_effect=mock_post_fn) as mock_post:
             consumer.start()
             for _ in range(0, n_msgs + 2):
                 q.put(track)

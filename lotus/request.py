@@ -8,8 +8,8 @@ from dateutil.tz import tzutc
 from requests import sessions
 from requests.auth import HTTPBasicAuth
 
-from lotus.utils import remove_trailing_slash
-from lotus.version import VERSION
+from .utils import remove_trailing_slash
+from .version import VERSION
 
 _session = sessions.Session()
 

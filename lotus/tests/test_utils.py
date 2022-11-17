@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import six
 from dateutil.tz import tzutc
+
 from lotus import utils
 
 
@@ -71,9 +72,5 @@ class TestUtils(unittest.TestCase):
 
     def test_remove_slash(self):
         # SHOUTOUT POSTHOG!!
-        self.assertEqual(
-            "http://posthog.io", utils.remove_trailing_slash("http://posthog.io/")
-        )
-        self.assertEqual(
-            "http://posthog.io", utils.remove_trailing_slash("http://posthog.io")
-        )
+        self.assertEqual("http://posthog.io", utils.remove_trailing_slash("http://posthog.io/"))
+        self.assertEqual("http://posthog.io", utils.remove_trailing_slash("http://posthog.io"))

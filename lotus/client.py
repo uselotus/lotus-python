@@ -9,10 +9,10 @@ from dateutil.parser import parse
 from dateutil.tz import tzutc
 from six import string_types
 
-from lotus.consumer import Consumer
-from lotus.request import post
-from lotus.utils import clean, guess_timezone, remove_trailing_slash
-from lotus.version import VERSION
+from .consumer import Consumer
+from .request import post
+from .utils import clean, guess_timezone, remove_trailing_slash
+from .version import VERSION
 
 # try:
 
@@ -271,7 +271,9 @@ class Client(object):
         replace_immediately_type=None,
     ):
         require("subscription_id", subscription_id, ID_TYPES)
-        assert turn_off_auto_renew is True or replace_immediately_type is not None, "Must provide either turn_off_auto_renew or replace_immediately_type"
+        assert (
+            turn_off_auto_renew is True or replace_immediately_type is not None
+        ), "Must provide either turn_off_auto_renew or replace_immediately_type"
         if turn_off_auto_renew is None:
             assert replace_immediately_type in [
                 "end_current_subscription_and_bill",
@@ -334,7 +336,6 @@ class Client(object):
 
         return self._enqueue(msg, block=True)
 
-
     def get_all_plans(
         self,
     ):
@@ -395,9 +396,7 @@ class Client(object):
                 endpoint_host = self.host + endpoint_url
             else:
                 endpoint_host = "https://www.uselotus.app" + endpoint_url
-            self.log.debug(
-                "enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"]
-            )
+            self.log.debug("enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"])
             response = post(
                 endpoint_host,
                 api_key=self.api_key,

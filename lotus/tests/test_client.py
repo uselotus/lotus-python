@@ -5,6 +5,7 @@ from datetime import date, datetime
 import mock
 import pytest
 import six
+
 from lotus import Client
 
 API_KEY = "ptZNACr2.nxc84U9orJ2rJpB6Qjl8wvJkvZdvn9Gi"
