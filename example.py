@@ -8,7 +8,7 @@ lotus.api_key = "<your key>"
 
 # Where you host Lotus, with no trailing /.
 # You can remove this line if you're using the cloud version
-lotus.host = "http://127.0.0.1:8000"
+lotus.host = "http://localhost:8000"
 
 # Track an event
 lotus.track_event(
@@ -18,7 +18,9 @@ lotus.track_event(
 )
 
 # create a customer
-lotus.create_customer(customer_id="customer_id", name="Corporation Inc.")
+lotus.create_customer(
+    customer_id="customer_id", customer_name="Corporation Inc.", email="my_email@email.com"
+)
 
 # create a subscription
 lotus.create_subscription(

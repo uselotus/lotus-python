@@ -217,7 +217,7 @@ class Client(object):
         payment_provider=None,
         payment_provider_id=None,
     ):
-        properties = properties or {}
+        # properties = properties or {}
         require("customer_id", customer_id, ID_TYPES)
         require("email", customer_name, ID_TYPES)
 
@@ -225,7 +225,7 @@ class Client(object):
             "$type": "create_customer",
             "customer_id": customer_id,
             "email": email,
-            "properties": properties,
+            # "properties": properties,
         }
         if customer_name:
             msg["customer_name"] = customer_name
@@ -234,7 +234,7 @@ class Client(object):
             msg["payment_provider"] = payment_provider
 
         if payment_provider_id:
-           msg["payment_provider_id"] = payment_provider_id
+            msg["payment_provider_id"] = payment_provider_id
 
         return self._enqueue(msg, block=True)
 

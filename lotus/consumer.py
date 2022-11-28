@@ -141,6 +141,7 @@ class Consumer(Thread):
                 gzip=self.gzip,
                 timeout=self.timeout,
                 body={"batch": batch},
+                method="POST",
             )
 
         send_request()
