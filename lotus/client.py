@@ -68,6 +68,11 @@ class Client(object):
                 "name": "create_customer",
                 "method": "POST",
             },
+            "create_batch_customers": {
+                "url": "/api/batch_create_customers/",
+                "name": "create_batch_customers",
+                "method": "POST",
+            },
             # subscription
             "create_subscription": {
                 "url": "/api/subscriptions/",
@@ -216,8 +221,12 @@ class Client(object):
         email=None,
         payment_provider=None,
         payment_provider_id=None,
+        properties=None,
     ):
+<<<<<<< HEAD
         # properties = properties or {}
+=======
+>>>>>>> 47eff78190f9ebc8feea70cec0aa95257391f099
         require("customer_id", customer_id, ID_TYPES)
         require("email", customer_name, ID_TYPES)
 
@@ -225,7 +234,11 @@ class Client(object):
             "$type": "create_customer",
             "customer_id": customer_id,
             "email": email,
+<<<<<<< HEAD
             # "properties": properties,
+=======
+            "properties": properties or {},
+>>>>>>> 47eff78190f9ebc8feea70cec0aa95257391f099
         }
         if customer_name:
             msg["customer_name"] = customer_name
@@ -235,6 +248,29 @@ class Client(object):
 
         if payment_provider_id:
             msg["payment_provider_id"] = payment_provider_id
+
+        return self._enqueue(msg, block=True)
+
+
+    def create_batch_customers(
+        self,
+        customers=[],
+        behavior_on_existing=None,
+    ):
+        for customer in customers:
+            require("customer_id", customer.customer_id, ID_TYPES)
+            require("email", customer.email, ID_TYPES)
+
+        require("behavior_on_existing", behavior_on_existing, ID_TYPES)
+
+        if behavior_on_existing not in ["merge", "ignore", "overwrite"]:
+            raise ValueError("Must provide valid value for behavior_on_existing")
+
+        msg = {
+            "$type": "create_batch_customers",
+            "customers": customers,
+            "behavior_on_existing": behavior_on_existing,
+        }
 
         return self._enqueue(msg, block=True)
 
