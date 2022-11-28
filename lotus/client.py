@@ -223,10 +223,6 @@ class Client(object):
         payment_provider_id=None,
         properties=None,
     ):
-<<<<<<< HEAD
-        # properties = properties or {}
-=======
->>>>>>> 47eff78190f9ebc8feea70cec0aa95257391f099
         require("customer_id", customer_id, ID_TYPES)
         require("email", customer_name, ID_TYPES)
 
@@ -234,11 +230,7 @@ class Client(object):
             "$type": "create_customer",
             "customer_id": customer_id,
             "email": email,
-<<<<<<< HEAD
-            # "properties": properties,
-=======
             "properties": properties or {},
->>>>>>> 47eff78190f9ebc8feea70cec0aa95257391f099
         }
         if customer_name:
             msg["customer_name"] = customer_name
@@ -250,7 +242,6 @@ class Client(object):
             msg["payment_provider_id"] = payment_provider_id
 
         return self._enqueue(msg, block=True)
-
 
     def create_batch_customers(
         self,
