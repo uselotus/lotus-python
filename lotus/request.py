@@ -8,16 +8,23 @@ from dateutil.tz import tzutc
 from requests import sessions
 from requests.auth import HTTPBasicAuth
 
-from .utils import remove_trailing_slash
+from .utils import HTTPMethod, remove_trailing_slash
 from .version import VERSION
 
 _session = sessions.Session()
 
 
-def post(host, api_key, gzip=False, timeout=15, body={}, method="GET"):
+def send(
+    host,
+    api_key,
+    method,
+    gzip=False,
+    timeout=15,
+    body={},
+    query={},
+):
     """Post the `kwargs` to the API"""
     log = logging.getLogger("lotus")
-    body = body
     body["sentAt"] = datetime.utcnow().replace(tzinfo=tzutc()).isoformat()
     url = host
     if not url.startswith("http"):
@@ -38,18 +45,30 @@ def post(host, api_key, gzip=False, timeout=15, body={}, method="GET"):
             gz.write(data.encode("utf-8"))
         data = buf.getvalue()
 
-    if method == "GET":
-        res = _session.get(url, headers=headers, params=body, timeout=timeout)
-    elif method == "POST":
-        res = _session.post(url, headers=headers, data=data, timeout=timeout)
+    if method == HTTPMethod.GET:
+        res = _session.get(url, headers=headers, params=query, timeout=timeout)
+    elif method == HTTPMethod.POST:
+        res = _session.post(
+            url, headers=headers, data=data, params=query, timeout=timeout
+        )
+    elif method == HTTPMethod.PATCH:
+        res = _session.patch(
+            url, data=data, headers=headers, params=query, timeout=timeout
+        )
+    elif method == HTTPMethod.DELETE:
+        res = _session.delete(url, headers=headers, params=query, timeout=timeout)
     else:
-        res = _session.patch(url, data=data, headers=headers, timeout=timeout)
-    if res.status_code == 200 or res.status_code == 201:
+        raise ValueError("Unsupported HTTP method: " + method)
+
+    if res.status_code == 200 or res.status_code == 201 or res.status_code == 204:
         log.debug("data uploaded successfully")
         return res
 
     try:
-        payload = res.json()
+        if res.status_code != 204:
+            payload = res.json()
+        else:
+            payload = "Success"
         log.debug("received response: %s", payload)
         raise APIError(res.status_code, payload)
     except ValueError:

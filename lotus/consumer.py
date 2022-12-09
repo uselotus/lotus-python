@@ -6,7 +6,8 @@ from threading import Thread
 import backoff
 import monotonic
 
-from .request import APIError, DatetimeSerializer, post
+from .request import APIError, DatetimeSerializer, send
+from .utils import HTTPMethod
 
 # try:
 #
@@ -135,13 +136,13 @@ class Consumer(Thread):
             backoff.expo, Exception, max_tries=self.retries + 1, giveup=fatal_exception
         )
         def send_request():
-            post(
+            send(
                 self.host,
                 self.api_key,
                 gzip=self.gzip,
                 timeout=self.timeout,
                 body={"batch": batch},
-                method="POST",
+                method=HTTPMethod.POST,
             )
 
         send_request()

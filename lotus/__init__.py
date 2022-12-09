@@ -18,12 +18,12 @@ def track_event(*args, **kwargs):
     return _proxy("track_event", *args, **kwargs)
 
 
-def get_all_customers(*args, **kwargs):
-    return _proxy("get_all_customers", *args, **kwargs)
+def get_customer(*args, **kwargs):
+    return _proxy("get_customer", *args, **kwargs)
 
 
-def get_customer_detail(*args, **kwargs):
-    return _proxy("get_customer_detail", *args, **kwargs)
+def list_customers(*args, **kwargs):
+    return _proxy("list_customers", *args, **kwargs)
 
 
 def create_customer(*args, **kwargs):
@@ -38,24 +38,32 @@ def cancel_subscription(*args, **kwargs):
     return _proxy("cancel_subscription", *args, **kwargs)
 
 
-def get_all_subscriptions(*args, **kwargs):
-    return _proxy("get_all_subscriptions", *args, **kwargs)
+def update_subscription(*args, **kwargs):
+    return _proxy("update_subscription", *args, **kwargs)
 
 
-def get_single_subscription(*args, **kwargs):
-    return _proxy("get_single_subscription", *args, **kwargs)
+def list_subscriptions(*args, **kwargs):
+    return _proxy("list_subscriptions", *args, **kwargs)
 
 
-def change_subscription_plan(*args, **kwargs):
-    return _proxy("change_subscription_plan", *args, **kwargs)
+def get_subscription(*args, **kwargs):
+    return _proxy("get_subscription", *args, **kwargs)
 
 
-def get_customer_access(*args, **kwargs):
-    return _proxy("get_customer_access", *args, **kwargs)
+def get_customer_metric_access(*args, **kwargs):
+    return _proxy("get_customer_metric_access", *args, **kwargs)
 
 
-def get_all_plans(*args, **kwargs):
-    return _proxy("get_subscriptions", *args, **kwargs)
+def get_customer_feature_access(*args, **kwargs):
+    return _proxy("get_customer_feature_access", *args, **kwargs)
+
+
+def list_plans(*args, **kwargs):
+    return _proxy("list_plans", *args, **kwargs)
+
+
+def get_plan(*args, **kwargs):
+    return _proxy("get_plan", *args, **kwargs)
 
 
 def flush():

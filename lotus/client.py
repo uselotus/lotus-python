@@ -1,4 +1,5 @@
 import atexit
+import json
 import logging
 import numbers
 import uuid
@@ -10,8 +11,8 @@ from dateutil.tz import tzutc
 from six import string_types
 
 from .consumer import Consumer
-from .request import post
-from .utils import clean, guess_timezone, remove_trailing_slash
+from .request import send
+from .utils import HTTPMethod, clean, guess_timezone, remove_trailing_slash
 from .version import VERSION
 
 # try:
@@ -50,66 +51,76 @@ class Client(object):
             "track_event": {
                 "url": "/api/track/",
                 "name": "track_event",
-                "method": "POST",
+                "method": HTTPMethod.POST,
             },
             # customer
-            "get_all_customers": {
+            "list_customers": {
                 "url": "/api/customers/",
-                "name": "get_all_customers",
-                "method": "GET",
+                "name": "list_customers",
+                "method": HTTPMethod.GET,
             },
-            "get_customer_detail": {
-                "url": "/api/customer_detail/",
-                "name": "get_customer_detail",
-                "method": "GET",
+            "get_customer": {
+                "url": "/api/customers/",
+                "name": "get_customer",
+                "method": HTTPMethod.GET,
             },
             "create_customer": {
                 "url": "/api/customers/",
                 "name": "create_customer",
-                "method": "POST",
+                "method": HTTPMethod.POST,
             },
             "create_batch_customers": {
                 "url": "/api/batch_create_customers/",
                 "name": "create_batch_customers",
-                "method": "POST",
+                "method": HTTPMethod.POST,
             },
             # subscription
             "create_subscription": {
-                "url": "/api/subscriptions/",
+                "url": "/api/subscriptions/plans/",
                 "name": "create_subscription",
-                "method": "POST",
+                "method": HTTPMethod.POST,
             },
             "cancel_subscription": {
-                "url": "/api/subscriptions/",
+                "url": "/api/subscriptions/plans/",
                 "name": "cancel_subscription",
-                "method": "PATCH",
+                "method": HTTPMethod.DELETE,
             },
-            "get_all_subscriptions": {
-                "url": "/api/subscriptions/",
-                "name": "get_all_subscriptions",
-                "method": "GET",
+            "update_subscription": {
+                "url": "/api/subscriptions/plans/",
+                "name": "update_subscription",
+                "method": HTTPMethod.PATCH,
             },
-            "get_subscription_detail": {
+            "list_subscriptions": {
                 "url": "/api/subscriptions/",
-                "name": "get_subscription_detail",
-                "method": "GET",
+                "name": "list_subscriptions",
+                "method": HTTPMethod.GET,
             },
-            "change_subscription_plan": {
+            "get_subscription": {
                 "url": "/api/subscriptions/",
-                "name": "change_subscription_plan",
-                "method": "PATCH",
+                "name": "get_subscription",
+                "method": HTTPMethod.GET,
             },
             # get access
-            "get_customer_access": {
-                "url": "/api/customer_access/",
-                "name": "get_customer_access",
-                "method": "GET",
+            "get_customer_metric_access": {
+                "url": "/api/customer_metric_access/",
+                "name": "get_customer_metric_access",
+                "method": HTTPMethod.GET,
+            },
+            "get_customer_feature_access": {
+                "url": "/api/customer_feature_access/",
+                "name": "get_customer_feature_access",
+                "method": HTTPMethod.GET,
             },
             # plans
-            "get_all_plans": {
+            "list_plans": {
                 "url": "/api/plans/",
-                "name": "get_all_plans",
-                "method": "GET",
+                "name": "list_plans",
+                "method": HTTPMethod.GET,
+            },
+            "get_plan": {
+                "url": "/api/plans/",
+                "name": "get_plan",
+                "method": HTTPMethod.GET,
             },
         }
 
@@ -161,6 +172,7 @@ class Client(object):
 
     def track_event(
         self,
+        *,
         customer_id=None,
         event_name=None,
         properties=None,
@@ -180,7 +192,7 @@ class Client(object):
         require("event_name", event_name, string_types)
         require("time_created", time_created, string_types)
 
-        msg = {
+        body = {
             "$type": "track_event",
             "properties": properties,
             "time_created": time_created,
@@ -189,33 +201,35 @@ class Client(object):
             "idempotency_id": idempotency_id,
         }
 
-        return self._enqueue(msg)
+        return self._enqueue(body)
 
-    def get_all_customers(
+    def list_customers(
         self,
     ):
 
         msg = {
-            "$type": "get_all_customers",
+            "$type": "list_customers",
         }
 
         return self._enqueue(msg, block=True)
 
-    def get_customer_detail(
+    def get_customer(
         self,
+        *,
         customer_id=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
 
         msg = {
-            "$type": "get_customer_detail",
-            "customer_id": customer_id,
+            "$type": "get_customer",
+            "$append_to_url": customer_id,
         }
 
         return self._enqueue(msg, block=True)
 
     def create_customer(
         self,
+        *,
         customer_name=None,
         customer_id=None,
         email=None,
@@ -226,25 +240,31 @@ class Client(object):
         require("customer_id", customer_id, ID_TYPES)
         require("email", customer_name, ID_TYPES)
 
-        msg = {
+        if (payment_provider is None) != (payment_provider_id is None):
+            raise ValueError(
+                "Either both payment_provider and payment_provider_id must be provided, or neither"
+            )
+
+        body = {
             "$type": "create_customer",
             "customer_id": customer_id,
             "email": email,
             "properties": properties or {},
         }
         if customer_name:
-            msg["customer_name"] = customer_name
+            body["customer_name"] = customer_name
 
         if payment_provider:
-            msg["payment_provider"] = payment_provider
+            body["payment_provider"] = payment_provider
 
         if payment_provider_id:
-            msg["payment_provider_id"] = payment_provider_id
+            body["payment_provider_id"] = payment_provider_id
 
-        return self._enqueue(msg, block=True)
+        return self._enqueue(body, block=True)
 
     def create_batch_customers(
         self,
+        *,
         customers=[],
         behavior_on_existing=None,
     ):
@@ -267,177 +287,269 @@ class Client(object):
 
     def create_subscription(
         self,
+        *,
         customer_id=None,
         plan_id=None,
         start_date=None,
         end_date=None,
-        status=None,
         auto_renew=None,
         is_new=None,
-        subscription_id=None,
+        subscription_filters=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
         require("plan_id", plan_id, ID_TYPES)
         require("start_date", start_date, ID_TYPES)
 
-        msg = {
+        for filter in subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+
+        body = {
             "$type": "create_subscription",
             "start_date": start_date,
             "plan_id": plan_id,
             "customer_id": customer_id,
         }
         if end_date:
-            msg["end_date"] = end_date
-        if status:
-            msg["status"] = status
+            body["end_date"] = end_date
         if auto_renew:
-            msg["auto_renew"] = auto_renew
+            body["auto_renew"] = auto_renew
         if is_new:
-            msg["is_new"] = is_new
-        if subscription_id:
-            msg["subscription_id"] = subscription_id
+            body["is_new"] = is_new
+        if subscription_filters:
+            body["subscription_filters"] = subscription_filters
 
-        return self._enqueue(msg, block=True)
+        return self._enqueue(body, block=True)
 
     def cancel_subscription(
         self,
-        subscription_id=None,
-        turn_off_auto_renew=None,
-        replace_immediately_type=None,
-    ):
-        require("subscription_id", subscription_id, ID_TYPES)
-        assert (
-            turn_off_auto_renew is True or replace_immediately_type is not None
-        ), "Must provide either turn_off_auto_renew or replace_immediately_type"
-        if turn_off_auto_renew is None:
-            assert replace_immediately_type in [
-                "end_current_subscription_and_bill",
-                "end_current_subscription_dont_bill",
-            ], "replace_immediately_type must be one of 'end_current_subscription_and_bill', 'end_current_subscription_dont_bill' when using status"
-        msg = {
-            "$type": "cancel_subscription",
-            "$append_to_url": subscription_id,
-        }
-        if turn_off_auto_renew:
-            msg["auto_renew"] = False
-        else:
-            msg["status"] = "ended"
-            msg["replace_immediately_type"] = replace_immediately_type
-
-        return self._enqueue(msg, block=True)
-
-    def get_all_subscriptions(
-        self,
-    ):
-
-        msg = {
-            "$type": "get_all_subscriptions",
-        }
-
-        return self._enqueue(msg, block=True)
-
-    def get_subscription_detail(
-        self,
-        subscription_id=None,
-    ):
-
-        msg = {
-            "$type": "get_subscription_detail",
-            "$append_to_url": subscription_id,
-        }
-
-        return self._enqueue(msg, block=True)
-
-    def change_subscription_plan(
-        self,
-        subscription_id=None,
+        *,
+        customer_id=None,
         plan_id=None,
-        replace_immediately_type=None,
+        subscription_filters=None,
+        flat_fee_behavior=None,
+        bill_usage=None,
+        invoicing_behavior_on_cancel=None,
     ):
-        require("subscription_id", subscription_id, ID_TYPES)
-        require("plan_id", plan_id, ID_TYPES)
-        assert replace_immediately_type in [
-            "end_current_subscription_and_bill",
-            "end_current_subscription_dont_bill",
-            "change_subscription_plan",
-        ], "Invalid replace_immediately_type"
+        if plan_id:
+            require("plan_id", plan_id, ID_TYPES)
+        if customer_id:
+            require("customer_id", customer_id, ID_TYPES)
+        for filter in subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+        if bill_usage is not None:
+            require("bill_usage", bill_usage, bool)
+        if invoicing_behavior_on_cancel is not None:
+            assert invoicing_behavior_on_cancel in [
+                "add_to_next_invoice",
+                "invoice_now",
+            ], "invoicing_behavior_on_cancel must be one of 'add_to_next_invoice' or 'invoice_now'"
+        if flat_fee_behavior is not None:
+            assert flat_fee_behavior in [
+                "refund",
+                "prorate",
+                "charge_full",
+            ], "flat_fee_behavior must be one of 'refund', 'prorate', or 'charge_full'"
+
+        body = {
+            "$type": "cancel_subscription",
+        }
+
+        query = {}
+        if plan_id:
+            query["plan_id"] = plan_id
+        if customer_id:
+            query["customer_id"] = customer_id
+        if subscription_filters:
+            query["subscription_filters"] = json.dumps(subscription_filters)
+        if flat_fee_behavior:
+            query["flat_fee_behavior"] = flat_fee_behavior
+        if bill_usage:
+            query["bill_usage"] = bill_usage
+        if invoicing_behavior_on_cancel:
+            query["invoicing_behavior_on_cancel"] = invoicing_behavior_on_cancel
+        return self._enqueue(body, query=query, block=True)
+
+    def list_subscriptions(
+        self,
+        status=None,
+    ):
+        for s in status or []:
+            assert s in [
+                "active",
+                "ended",
+                "not_started",
+            ], "Invalid status"
 
         msg = {
-            "$type": "cancel_subscription",
-            "$append_to_url": subscription_id,
-            "plan_id": plan_id,
-            "replace_immediately_type": replace_immediately_type,
+            "$type": "list_subscriptions",
+        }
+        query = {}
+        if status is not None:
+            query["status"] = status
+        return self._enqueue(msg, query=query, block=True)
+
+    def get_subscription(
+        self,
+        customer_id=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+        msg = {
+            "$type": "get_subscription",
+            "customer_id": customer_id,
         }
 
         return self._enqueue(msg, block=True)
 
-    def get_all_plans(
+    def update_subscription(
+        self,
+        customer_id=None,
+        plan_id=None,
+        subscription_filters=None,
+        replace_plan_id=None,
+        replace_plan_invocing_behavior=None,
+        turn_off_auto_renew=None,
+        end_date=None,
+    ):
+        if plan_id:
+            require("plan_id", plan_id, ID_TYPES)
+        if customer_id:
+            require("customer_id", customer_id, ID_TYPES)
+        for filter in subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+        if replace_plan_id:
+            require("replace_plan_id", replace_plan_id, ID_TYPES)
+        if replace_plan_invocing_behavior is not None:
+            assert replace_plan_invocing_behavior in [
+                "add_to_next_invoice",
+                "invoice_now",
+            ], "replace_plan_invocing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
+        if turn_off_auto_renew is not None:
+            require("turn_off_auto_renew", turn_off_auto_renew, bool)
+        if end_date:
+            require("end_date", end_date, str)
+
+        query = {}
+        if plan_id:
+            query["plan_id"] = plan_id
+        if customer_id:
+            query["customer_id"] = customer_id
+        if subscription_filters:
+            body["subscription_filters"] = json.dumps(subscription_filters)
+
+        body = {
+            "$type": "update_subscription",
+        }
+        if replace_plan_id:
+            body["replace_plan_id"] = replace_plan_id
+        if replace_plan_invocing_behavior:
+            body["replace_plan_invocing_behavior"] = replace_plan_invocing_behavior
+        if turn_off_auto_renew:
+            body["turn_off_auto_renew"] = turn_off_auto_renew
+
+        return self._enqueue(body, query=query, block=True)
+
+    def list_plans(
         self,
     ):
 
         msg = {
-            "$type": "get_all_plans",
+            "$type": "list_plans",
         }
 
         return self._enqueue(msg, block=True)
 
-    def get_customer_access(
+    def get_plan(
+        self,
+        *,
+        plan_id=None,
+    ):
+        require("plan_id", plan_id, ID_TYPES)
+
+        msg = {
+            "$type": "get_customer",
+            "$append_to_url": plan_id,
+        }
+
+        return self._enqueue(msg, block=True)
+
+    def get_customer_metric_access(
         self,
         customer_id=None,
         event_name=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+        if not event_name:
+            raise ValueError("Must provide event_name")
+
+        body = {
+            "$type": "get_customer_metric_access",
+        }
+        query = {
+            "customer_id": customer_id,
+            "event_name": event_name,
+        }
+
+        return self._enqueue(body, query=query, block=True)
+
+    def get_customer_feature_access(
+        self,
+        customer_id=None,
         feature_name=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
-        if not event_name and not feature_name:
-            raise ValueError("Must provide event_name or feature_name")
-        elif event_name and feature_name:
-            raise ValueError("Can't provide both event_name and feature_name")
+        if not feature_name:
+            raise ValueError("Must provide feature_name")
 
-        msg = {
-            "$type": "get_customer_access",
-            "customer_id": customer_id,
+        body = {
+            "$type": "get_customer_feature_access",
         }
-        if event_name:
-            msg["event_name"] = event_name
-        elif feature_name:
-            msg["feature_name"] = feature_name
+        query = {
+            "customer_id": customer_id,
+            "feature_name": feature_name,
+        }
 
-        return self._enqueue(msg, block=True)
+        return self._enqueue(body, query=query, block=True)
 
-    def _enqueue(self, msg, block=False):
+    def _enqueue(self, body, query=None, block=False):
         """Push a new `msg` onto the queue, return `(success, msg)`"""
-        msg["library"] = "lotus-python"
-        msg["library_version"] = VERSION
+        body["library"] = "lotus-python"
+        body["library_version"] = VERSION
 
-        if "idempotency_id" in msg:
-            msg["idempotency_id"] = stringify_id(msg.get("idempotency_id", None))
-        if "customer_id" in msg:
-            msg["customer_id"] = stringify_id(msg.get("customer_id", None))
+        if "idempotency_id" in body:
+            body["idempotency_id"] = stringify_id(body.get("idempotency_id", None))
+        if "customer_id" in body:
+            body["customer_id"] = stringify_id(body.get("customer_id", None))
 
-        msg = clean(msg)
-        self.log.debug("queueing: %s", msg)
+        body = clean(body)
+        self.log.debug("queueing: %s", body)
 
         # if send is False, return msg as if it was successfully queued
         if not self.send:
-            return True, msg
+            return True, body
 
         if self.sync_mode or block:
-            operation = msg["$type"]
+            operation = body["$type"]
             endpoint_url = self.operations[operation]["url"]
-            if "$append_to_url" in msg:
-                endpoint_url = endpoint_url + msg["$append_to_url"] + "/"
-                del msg["$append_to_url"]
+            if "$append_to_url" in body:
+                endpoint_url = endpoint_url + body["$append_to_url"] + "/"
+                del body["$append_to_url"]
             if self.host:
                 endpoint_host = self.host + endpoint_url
             else:
                 endpoint_host = "https://www.uselotus.app" + endpoint_url
-            self.log.debug("enqueued msg to %s with blocking %s.", endpoint_host, msg["$type"])
-            response = post(
+            self.log.debug(
+                "enqueued msg to %s with blocking %s.", endpoint_host, body["$type"]
+            )
+            response = send(
                 endpoint_host,
                 api_key=self.api_key,
                 gzip=self.gzip,
                 timeout=self.timeout,
-                body=msg,
+                body=body,
+                query=query,
                 method=self.operations[operation]["method"],
             )
 
@@ -449,12 +561,12 @@ class Client(object):
             return data
 
         try:
-            self.queue.put(msg, block=False)
-            self.log.debug("enqueued %s.", msg["$type"])
-            return True, msg
+            self.queue.put(body, block=False)
+            self.log.debug("enqueued %s.", body["$type"])
+            return True, body
         except Full:
             self.log.warning("queue is full")
-            return False, msg
+            return False, body
 
     def flush(self):
         """Forces a flush from the internal queue to the server"""

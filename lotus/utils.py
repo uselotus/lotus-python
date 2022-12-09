@@ -2,6 +2,7 @@ import logging
 import numbers
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 
 import six
 from dateutil.tz import tzlocal, tzutc
@@ -87,3 +88,10 @@ def _coerce_unicode(cmplx):
         log.warning("Error decoding: %s", item)
         return None
     return item
+
+
+class HTTPMethod(Enum):
+    GET = "GET"
+    POST = "POST"
+    PATCH = "PATCH"
+    DELETE = "DELETE"
