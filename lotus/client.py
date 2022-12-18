@@ -8,9 +8,11 @@ from queue import Full, Queue
 
 from dateutil.parser import parse
 from dateutil.tz import tzutc
+from pydantic import parse_obj_as
 from six import string_types
 
 from .consumer import Consumer
+from .models import *
 from .request import send
 from .utils import HTTPMethod, clean, guess_timezone, remove_trailing_slash
 from .version import VERSION
@@ -69,35 +71,30 @@ class Client(object):
                 "name": "create_customer",
                 "method": HTTPMethod.POST,
             },
-            "create_batch_customers": {
-                "url": "/api/batch_create_customers/",
-                "name": "create_batch_customers",
-                "method": HTTPMethod.POST,
-            },
+            # "create_batch_customers": {
+            #     "url": "/api/batch_create_customers/",
+            #     "name": "create_batch_customers",
+            #     "method": HTTPMethod.POST,
+            # },
             # subscription
             "create_subscription": {
-                "url": "/api/subscriptions/plans/",
+                "url": "/api/subscriptions/add/",
                 "name": "create_subscription",
                 "method": HTTPMethod.POST,
             },
             "cancel_subscription": {
-                "url": "/api/subscriptions/plans/",
+                "url": "/api/subscriptions/cancel/",
                 "name": "cancel_subscription",
                 "method": HTTPMethod.DELETE,
             },
-            "update_subscription": {
-                "url": "/api/subscriptions/plans/",
-                "name": "update_subscription",
+            "edit_subscription": {
+                "url": "/api/subscriptions/edit/",
+                "name": "edit_subscription",
                 "method": HTTPMethod.PATCH,
             },
             "list_subscriptions": {
                 "url": "/api/subscriptions/",
                 "name": "list_subscriptions",
-                "method": HTTPMethod.GET,
-            },
-            "get_subscription": {
-                "url": "/api/subscriptions/",
-                "name": "get_subscription",
                 "method": HTTPMethod.GET,
             },
             # get access
@@ -207,11 +204,13 @@ class Client(object):
         self,
     ):
 
-        msg = {
+        body = {
             "$type": "list_customers",
         }
 
-        return self._enqueue(msg, block=True)
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(list[CustomerDetail], ret)
+        return obj.json()
 
     def get_customer(
         self,
@@ -220,12 +219,14 @@ class Client(object):
     ):
         require("customer_id", customer_id, ID_TYPES)
 
-        msg = {
+        body = {
             "$type": "get_customer",
             "$append_to_url": customer_id,
         }
 
-        return self._enqueue(msg, block=True)
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(CustomerDetail, ret)
+        return obj.json()
 
     def create_customer(
         self,
@@ -260,30 +261,32 @@ class Client(object):
         if payment_provider_id:
             body["payment_provider_id"] = payment_provider_id
 
-        return self._enqueue(body, block=True)
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(CustomerDetail, ret)
+        return obj.json()
 
-    def create_batch_customers(
-        self,
-        *,
-        customers=[],
-        behavior_on_existing=None,
-    ):
-        for customer in customers:
-            require("customer_id", customer.customer_id, ID_TYPES)
-            require("email", customer.email, ID_TYPES)
+    # def create_batch_customers(
+    #     self,
+    #     *,
+    #     customers=[],
+    #     behavior_on_existing=None,
+    # ):
+    #     for customer in customers:
+    #         require("customer_id", customer.customer_id, ID_TYPES)
+    #         require("email", customer.email, ID_TYPES)
 
-        require("behavior_on_existing", behavior_on_existing, ID_TYPES)
+    #     require("behavior_on_existing", behavior_on_existing, ID_TYPES)
 
-        if behavior_on_existing not in ["merge", "ignore", "overwrite"]:
-            raise ValueError("Must provide valid value for behavior_on_existing")
+    #     if behavior_on_existing not in ["merge", "ignore", "overwrite"]:
+    #         raise ValueError("Must provide valid value for behavior_on_existing")
 
-        msg = {
-            "$type": "create_batch_customers",
-            "customers": customers,
-            "behavior_on_existing": behavior_on_existing,
-        }
+    #     body = {
+    #         "$type": "create_batch_customers",
+    #         "customers": customers,
+    #         "behavior_on_existing": behavior_on_existing,
+    #     }
 
-        return self._enqueue(msg, block=True)
+    #     return self._enqueue(body, block=True)
 
     def create_subscription(
         self,
@@ -319,7 +322,9 @@ class Client(object):
         if subscription_filters:
             body["subscription_filters"] = subscription_filters
 
-        return self._enqueue(body, block=True)
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(SubscriptionRecord, ret)
+        return obj.json()
 
     def cancel_subscription(
         self,
@@ -369,7 +374,10 @@ class Client(object):
             query["bill_usage"] = bill_usage
         if invoicing_behavior_on_cancel:
             query["invoicing_behavior_on_cancel"] = invoicing_behavior_on_cancel
-        return self._enqueue(body, query=query, block=True)
+
+        ret = self._enqueue(body, query=query, block=True)
+        obj = parse_obj_as(list[SubscriptionRecord], ret)
+        return obj.json()
 
     def list_subscriptions(
         self,
@@ -382,27 +390,18 @@ class Client(object):
                 "not_started",
             ], "Invalid status"
 
-        msg = {
+        body = {
             "$type": "list_subscriptions",
         }
         query = {}
         if status is not None:
             query["status"] = status
-        return self._enqueue(msg, query=query, block=True)
 
-    def get_subscription(
-        self,
-        customer_id=None,
-    ):
-        require("customer_id", customer_id, ID_TYPES)
-        msg = {
-            "$type": "get_subscription",
-            "customer_id": customer_id,
-        }
+        ret = self._enqueue(body, query=query, block=True)
+        obj = parse_obj_as(list[SubscriptionRecord], ret)
+        return obj.json()
 
-        return self._enqueue(msg, block=True)
-
-    def update_subscription(
+    def edit_subscription(
         self,
         customer_id=None,
         plan_id=None,
@@ -440,7 +439,7 @@ class Client(object):
             body["subscription_filters"] = json.dumps(subscription_filters)
 
         body = {
-            "$type": "update_subscription",
+            "$type": "edit_subscription",
         }
         if replace_plan_id:
             body["replace_plan_id"] = replace_plan_id
@@ -449,17 +448,21 @@ class Client(object):
         if turn_off_auto_renew:
             body["turn_off_auto_renew"] = turn_off_auto_renew
 
-        return self._enqueue(body, query=query, block=True)
+        ret = self._enqueue(body, query=query, block=True)
+        obj = parse_obj_as(list[SubscriptionRecord], ret)
+        return obj.json()
 
     def list_plans(
         self,
     ):
 
-        msg = {
+        body = {
             "$type": "list_plans",
         }
 
-        return self._enqueue(msg, block=True)
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(list[Plan], ret)
+        return obj.json()
 
     def get_plan(
         self,
@@ -468,12 +471,13 @@ class Client(object):
     ):
         require("plan_id", plan_id, ID_TYPES)
 
-        msg = {
+        body = {
             "$type": "get_customer",
             "$append_to_url": plan_id,
         }
-
-        return self._enqueue(msg, block=True)
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(Plan, ret)
+        return obj.json()
 
     def get_customer_metric_access(
         self,
@@ -492,7 +496,9 @@ class Client(object):
             "event_name": event_name,
         }
 
-        return self._enqueue(body, query=query, block=True)
+        ret = self._enqueue(body, query=query, block=True)
+        obj = parse_obj_as(list[GetEventAccess], ret)
+        return obj.json()
 
     def get_customer_feature_access(
         self,
@@ -511,10 +517,12 @@ class Client(object):
             "feature_name": feature_name,
         }
 
-        return self._enqueue(body, query=query, block=True)
+        ret = self._enqueue(body, query=query, block=True)
+        obj = parse_obj_as(list[GetFeatureAccess], ret)
+        return obj.json()
 
     def _enqueue(self, body, query=None, block=False):
-        """Push a new `msg` onto the queue, return `(success, msg)`"""
+        """Push a new `body` onto the queue, return `(success, body)`"""
         body["library"] = "lotus-python"
         body["library_version"] = VERSION
 
@@ -526,7 +534,7 @@ class Client(object):
         body = clean(body)
         self.log.debug("queueing: %s", body)
 
-        # if send is False, return msg as if it was successfully queued
+        # if send is False, return body as if it was successfully queued
         if not self.send:
             return True, body
 
@@ -541,7 +549,7 @@ class Client(object):
             else:
                 endpoint_host = "https://www.uselotus.app" + endpoint_url
             self.log.debug(
-                "enqueued msg to %s with blocking %s.", endpoint_host, body["$type"]
+                "enqueued body to %s with blocking %s.", endpoint_host, body["$type"]
             )
             response = send(
                 endpoint_host,
@@ -597,8 +605,8 @@ class Client(object):
 def require(name, field, data_type):
     """Require that the named `field` has the right `data_type`"""
     if not isinstance(field, data_type):
-        msg = "{0} must have {1}, got: {2}".format(name, data_type, field)
-        raise AssertionError(msg)
+        body = "{0} must have {1}, got: {2}".format(name, data_type, field)
+        raise AssertionError(body)
 
 
 def stringify_id(val):

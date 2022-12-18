@@ -38,8 +38,8 @@ def cancel_subscription(*args, **kwargs):
     return _proxy("cancel_subscription", *args, **kwargs)
 
 
-def update_subscription(*args, **kwargs):
-    return _proxy("update_subscription", *args, **kwargs)
+def edit_subscription(*args, **kwargs):
+    return _proxy("edit_subscription", *args, **kwargs)
 
 
 def list_subscriptions(*args, **kwargs):

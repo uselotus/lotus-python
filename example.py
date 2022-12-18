@@ -56,7 +56,7 @@ lotus.host = "http://localhost:8000"
 # print("subscription", subscription)
 
 # # Update a subscription
-# lotus.update_subscription(
+# lotus.edit_subscription(
 #     customer_id="customer_id",
 #     plan_id="plan_8b40ab11e80f4642900b1af3b0a7ed21",
 #     turn_off_auto_renew=True,

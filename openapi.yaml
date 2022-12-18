@@ -1,0 +1,5631 @@
+openapi: 3.0.3
+info:
+  title: Lotus API
+  version: 0.0.1
+  description:
+    Lotus is an open-core pricing and billing engine. We enable API companies
+    to automate and optimize their custom usage-based pricing for any metric.
+paths:
+  /api/balance_adjustments/:
+    get:
+      operationId: api_balance_adjustments_list
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          required: true
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
+    post:
+      operationId: api_balance_adjustments_create
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustment"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
+  /api/balance_adjustments/{adjustment_id}/:
+    delete:
+      operationId: api_balance_adjustments_destroy
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      parameters:
+        - in: path
+          name: adjustment_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "204":
+          description: No response body
+  /api/batch_create_customers/:
+    post:
+      operationId: api_batch_create_customers_create
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerBatchCreateRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/CustomerBatchCreateRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CustomerBatchCreateRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBatchCreateSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBatchCreateFailure"
+          description: ""
+  /api/customer_feature_access/:
+    get:
+      operationId: api_customer_feature_access_list
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: The customer_id of the customer you want to check access.
+          required: true
+        - in: query
+          name: feature_name
+          schema:
+            type: string
+            minLength: 1
+          description: Name of the feature to check access for.
+          required: true
+        - in: query
+          name: subscription_filters
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+          description:
+            The subscription filters that are applied to this plan's relationship
+            with the customer. If your billing model does not have the ability multiple
+            plans or subscriptions per customer, this is likely nto relevant for you.
+          required: true
+      tags:
+        - api
+      security:
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetFeatureAccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCustomerFeatureAccessFailure"
+          description: ""
+  /api/customer_metric_access/:
+    get:
+      operationId: api_customer_metric_access_list
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: The customer_id of the customer you want to check access.
+          required: true
+        - in: query
+          name: event_name
+          schema:
+            type: string
+            minLength: 1
+          description: The name of the event you are checking access for.
+          required: true
+        - in: query
+          name: metric_id
+          schema:
+            type: string
+            minLength: 1
+          description:
+            The metric_id of the metric you are checking access for. If you
+            don't specify this, we will return the access for all metrics that use this
+            event.
+        - in: query
+          name: subscription_filters
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+          description:
+            The subscription filters that are applied to this plan's relationship
+            with the customer. If your billing model does not have the ability multiple
+            plans or subscriptions per customer, this is likely nto relevant for you.
+          required: true
+      tags:
+        - api
+      security:
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetEventAccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCustomerEventAccessFailure"
+          description: ""
+  /api/customers/:
+    get:
+      operationId: api_customers_list
+      description: A simple ViewSet for viewing and editing Customers.
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerDetail"
+          description: ""
+    post:
+      operationId: api_customers_create
+      description: A simple ViewSet for viewing and editing Customers.
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Customer"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Customer"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Customer"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+          description: ""
+  /api/customers/{customer_id}/:
+    get:
+      operationId: api_customers_retrieve
+      description: A simple ViewSet for viewing and editing Customers.
+      parameters:
+        - in: path
+          name: customer_id
+          schema:
+            type: string
+            description:
+              The id provided when creating the customer, we suggest matching
+              with your internal customer id in your backend
+          required: true
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDetail"
+          description: ""
+  /api/invoices/:
+    get:
+      operationId: api_invoices_list
+      description: A simple ViewSet for viewing and editing Invoices.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: A filter for invoices for a specific customer
+        - in: query
+          name: payment_status
+          schema:
+            type: array
+            items:
+              enum:
+                - unpaid
+                - paid
+              type: string
+            default:
+              - paid
+          description: A filter for invoices with a specific payment status
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+          description: ""
+  /api/invoices/{invoice_number}/:
+    get:
+      operationId: api_invoices_retrieve
+      description: A simple ViewSet for viewing and editing Invoices.
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: string
+          required: true
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+          description: ""
+    patch:
+      operationId: api_invoices_partial_update
+      description: A simple ViewSet for viewing and editing Invoices.
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: string
+          required: true
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedInvoiceUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedInvoiceUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedInvoiceUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceUpdate"
+          description: ""
+  /api/plans/:
+    get:
+      operationId: api_plans_list
+      description: A simple ViewSet for viewing and editing Products.
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+          description: ""
+  /api/plans/{plan_id}/:
+    get:
+      operationId: api_plans_retrieve
+      description: A simple ViewSet for viewing and editing Products.
+      parameters:
+        - in: path
+          name: plan_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+          description: ""
+  /api/subscriptions/:
+    get:
+      operationId: api_subscriptions_list
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific customer.
+          required: true
+        - in: query
+          name: plan_id
+          schema:
+            type: string
+            minLength: 1
+          description:
+            Filter to a specific plan. If not specified, all plans will be
+            canceled.
+        - in: query
+          name: range_end
+          schema:
+            type: string
+            format: date-time
+          description:
+            If specified, will only return subscriptions with a start date
+            before this date.
+        - in: query
+          name: range_start
+          schema:
+            type: string
+            format: date-time
+          description:
+            If specified, will only return subscriptions with an end date
+            after this date.
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              enum:
+                - active
+                - ended
+                - not_started
+              type: string
+            default:
+              - active
+          description:
+            Filter to a specific set of subscription statuses. Defaults to
+            active.
+      tags:
+        - api
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /api/subscriptions/add/:
+    post:
+      operationId: api_subscriptions_add_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /api/subscriptions/cancel/:
+    post:
+      operationId: api_subscriptions_cancel_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific customer.
+          required: true
+        - in: query
+          name: plan_id
+          schema:
+            type: string
+            minLength: 1
+          description:
+            Filter to a specific plan. If not specified, all plans will be
+            canceled.
+        - in: query
+          name: subscription_filters
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+          description:
+            Filter to a specific set of subscription filters. If your billing
+            model only allows for one subscription per customer, you very likely do
+            not need this field. Must be formatted as a JSON-encoded + stringified list
+            of dictionaries, where each dictionary has a key of 'property_name' and
+            a key of 'value'.
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordCancel"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordCancel"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordCancel"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /api/subscriptions/update/:
+    post:
+      operationId: api_subscriptions_update_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific customer.
+          required: true
+        - in: query
+          name: plan_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific plan.
+          required: true
+        - in: query
+          name: subscription_filters
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+          description:
+            Filter to a specific set of subscription filters. If your billing
+            model only allows for one subscription per customer, you very likely do
+            not need this field. Must be formatted as a JSON-encoded + stringified list
+            of dictionaries, where each dictionary has a key of 'property_name' and
+            a key of 'value'.
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /api/track/:
+    post:
+      operationId: api_track_create
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchEvent"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/BatchEvent"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/BatchEvent"
+        required: true
+      security:
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackEventSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackEventFailure"
+          description: ""
+  /api/verify_idems_received/:
+    post:
+      operationId: api_verify_idems_received_create
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmIdemsReceivedRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ConfirmIdemsReceivedRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ConfirmIdemsReceivedRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfirmIdemsReceived"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfirmIdemsReceivedFailure"
+          description: ""
+  /app/actions/:
+    get:
+      operationId: app_actions_list
+      description: API endpoint that allows events to be viewed.
+      parameters:
+        - name: c
+          required: false
+          in: query
+          description: The pagination cursor value.
+          schema:
+            type: string
+        - name: page_size
+          required: false
+          in: query
+          description: Number of results to return per page.
+          schema:
+            type: integer
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedActionList"
+          description: ""
+  /app/api_tokens/:
+    get:
+      operationId: app_api_tokens_list
+      description: API endpoint that allows API Tokens to be viewed or edited.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/APIToken"
+          description: ""
+    post:
+      operationId: app_api_tokens_create
+      description: API endpoint that allows API Tokens to be viewed or edited.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/APIToken"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/APIToken"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/APIToken"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APITokenCreateResponse"
+          description: ""
+  /app/api_tokens/{prefix}/:
+    delete:
+      operationId: app_api_tokens_destroy
+      description: API endpoint that allows API Tokens to be viewed or edited.
+      parameters:
+        - in: path
+          name: prefix
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "204":
+          description: No response body
+  /app/api_tokens/{prefix}/roll/:
+    post:
+      operationId: app_api_tokens_roll_create
+      description: API endpoint that allows API Tokens to be viewed or edited.
+      parameters:
+        - in: path
+          name: prefix
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APITokenRollResponse"
+          description: ""
+  /app/backtests/:
+    get:
+      operationId: app_backtests_list
+      description: A simple ViewSet for viewing and editing Backtests.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BacktestSummary"
+          description: ""
+    post:
+      operationId: app_backtests_create
+      description: A simple ViewSet for viewing and editing Backtests.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BacktestCreate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/BacktestCreate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/BacktestCreate"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacktestCreate"
+          description: ""
+  /app/backtests/{backtest_id}/:
+    get:
+      operationId: app_backtests_retrieve
+      description: A simple ViewSet for viewing and editing Backtests.
+      parameters:
+        - in: path
+          name: backtest_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacktestDetail"
+          description: ""
+  /app/balance_adjustments/:
+    get:
+      operationId: app_balance_adjustments_list
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
+    post:
+      operationId: app_balance_adjustments_create
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustment"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
+  /app/balance_adjustments/{adjustment_id}/:
+    delete:
+      operationId: app_balance_adjustments_destroy
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      parameters:
+        - in: path
+          name: adjustment_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "204":
+          description: No response body
+  /app/cost_analysis/:
+    get:
+      operationId: app_cost_analysis_retrieve
+      description: Returns the revenue for an organization in a given time period.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          required: true
+        - in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostAnalysis"
+          description: ""
+  /app/customer_summary/:
+    get:
+      operationId: app_customer_summary_list
+      description: Get the current settings for the organization.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerSummary"
+          description: ""
+  /app/customer_totals/:
+    get:
+      operationId: app_customer_totals_list
+      description: Return current usage for a customer during a given billing period.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerWithRevenue"
+          description: ""
+  /app/customers/:
+    get:
+      operationId: app_customers_list
+      description: A simple ViewSet for viewing and editing Customers.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerDetail"
+          description: ""
+    post:
+      operationId: app_customers_create
+      description: A simple ViewSet for viewing and editing Customers.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Customer"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Customer"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Customer"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+          description: ""
+  /app/customers/{customer_id}/:
+    get:
+      operationId: app_customers_retrieve
+      description: A simple ViewSet for viewing and editing Customers.
+      parameters:
+        - in: path
+          name: customer_id
+          schema:
+            type: string
+            description:
+              The id provided when creating the customer, we suggest matching
+              with your internal customer id in your backend
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerDetail"
+          description: ""
+    patch:
+      operationId: app_customers_partial_update
+      description: A simple ViewSet for viewing and editing Customers.
+      parameters:
+        - in: path
+          name: customer_id
+          schema:
+            type: string
+            description:
+              The id provided when creating the customer, we suggest matching
+              with your internal customer id in your backend
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedCustomerUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedCustomerUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedCustomerUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerUpdate"
+          description: ""
+  /app/demo_register/:
+    post:
+      operationId: app_demo_register_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoRegistration"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/DemoRegistration"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/DemoRegistration"
+        required: true
+      security:
+        - basicAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoRegistrationSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoRegistrationFailure"
+          description: ""
+  /app/draft_invoice/:
+    get:
+      operationId: app_draft_invoice_retrieve
+      description:
+        Pagination-enabled endpoint for retrieving an organization's event
+        stream.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          required: true
+        - in: query
+          name: include_next_period
+          schema:
+            type: boolean
+            default: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DraftInvoiceResponse"
+          description: ""
+  /app/events/:
+    get:
+      operationId: app_events_list
+      description: API endpoint that allows events to be viewed.
+      parameters:
+        - name: c
+          required: false
+          in: query
+          description: The pagination cursor value.
+          schema:
+            type: string
+        - name: page_size
+          required: false
+          in: query
+          description: Number of results to return per page.
+          schema:
+            type: integer
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedEventList"
+          description: ""
+  /app/external_plan_links/:
+    post:
+      operationId: app_external_plan_links_create
+      description: A simple ViewSet for viewing and editing ExternalPlanLink.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExternalPlanLink"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ExternalPlanLink"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ExternalPlanLink"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExternalPlanLink"
+          description: ""
+  /app/external_plan_links/{external_plan_id}/:
+    delete:
+      operationId: app_external_plan_links_destroy
+      description: A simple ViewSet for viewing and editing ExternalPlanLink.
+      parameters:
+        - in: path
+          name: external_plan_id
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: source
+          schema:
+            enum:
+              - stripe
+            type: string
+            minLength: 1
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "204":
+          description: No response body
+  /app/features/:
+    get:
+      operationId: app_features_list
+      description: A simple ViewSet for viewing and editing Features.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Feature"
+          description: ""
+    post:
+      operationId: app_features_create
+      description: A simple ViewSet for viewing and editing Features.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Feature"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Feature"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Feature"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Feature"
+          description: ""
+  /app/import_customers/:
+    post:
+      operationId: app_import_customers_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportCustomersRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ImportCustomersRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ImportCustomersRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportCustomerSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportCustomerFailure"
+          description: ""
+  /app/import_payment_objects/:
+    post:
+      operationId: app_import_payment_objects_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportPaymentObjectsRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ImportPaymentObjectsRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ImportPaymentObjectsRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPaymentObjectSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPaymentObjectFailure"
+          description: ""
+  /app/invoices/:
+    get:
+      operationId: app_invoices_list
+      description: A simple ViewSet for viewing and editing Invoices.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: A filter for invoices for a specific customer
+        - in: query
+          name: payment_status
+          schema:
+            type: array
+            items:
+              enum:
+                - unpaid
+                - paid
+              type: string
+            default:
+              - paid
+          description: A filter for invoices with a specific payment status
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+          description: ""
+  /app/invoices/{invoice_number}/:
+    get:
+      operationId: app_invoices_retrieve
+      description: A simple ViewSet for viewing and editing Invoices.
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+          description: ""
+    patch:
+      operationId: app_invoices_partial_update
+      description: A simple ViewSet for viewing and editing Invoices.
+      parameters:
+        - in: path
+          name: invoice_number
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedInvoiceUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedInvoiceUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedInvoiceUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceUpdate"
+          description: ""
+  /app/login/:
+    post:
+      operationId: app_login_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      security:
+        - basicAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginFailure"
+          description: ""
+  /app/logout/:
+    post:
+      operationId: app_logout_create
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutFailure"
+          description: ""
+  /app/metrics/:
+    get:
+      operationId: app_metrics_list
+      description: A simple ViewSet for viewing and editing Billable Metrics.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metric"
+          description: ""
+    post:
+      operationId: app_metrics_create
+      description: A simple ViewSet for viewing and editing Billable Metrics.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Metric"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Metric"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Metric"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+          description: ""
+  /app/metrics/{metric_id}/:
+    get:
+      operationId: app_metrics_retrieve
+      description: A simple ViewSet for viewing and editing Billable Metrics.
+      parameters:
+        - in: path
+          name: metric_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+          description: ""
+    patch:
+      operationId: app_metrics_partial_update
+      description: A simple ViewSet for viewing and editing Billable Metrics.
+      parameters:
+        - in: path
+          name: metric_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedMetricUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedMetricUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedMetricUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricUpdate"
+          description: ""
+  /app/organization/invite/:
+    post:
+      operationId: app_organization_invite_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/InviteRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/InviteRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InviteResponse"
+          description: ""
+  /app/organization_settings/:
+    get:
+      operationId: app_organization_settings_list
+      description: A simple ViewSet for viewing and editing OrganizationSettings.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizationSetting"
+          description: ""
+  /app/organization_settings/{setting_id}/:
+    get:
+      operationId: app_organization_settings_retrieve
+      description: A simple ViewSet for viewing and editing OrganizationSettings.
+      parameters:
+        - in: path
+          name: setting_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationSetting"
+          description: ""
+    patch:
+      operationId: app_organization_settings_partial_update
+      description: A simple ViewSet for viewing and editing OrganizationSettings.
+      parameters:
+        - in: path
+          name: setting_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedOrganizationSetting"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedOrganizationSetting"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedOrganizationSetting"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationSetting"
+          description: ""
+  /app/organizations/:
+    get:
+      operationId: app_organizations_list
+      description: A simple ViewSet for viewing and editing OrganizationSettings.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Organization"
+          description: ""
+  /app/organizations/{organization_id}/:
+    patch:
+      operationId: app_organizations_partial_update
+      description: A simple ViewSet for viewing and editing OrganizationSettings.
+      parameters:
+        - in: path
+          name: organization_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedOrganizationUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedOrganizationUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedOrganizationUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationUpdate"
+          description: ""
+  /app/payment_providers/:
+    get:
+      operationId: app_payment_providers_list
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SinglePaymentProvider"
+          description: ""
+    post:
+      operationId: app_payment_providers_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentProviderPostRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PaymentProviderPostRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PaymentProviderPostRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentProviderPostResponse"
+          description: ""
+  /app/period_metric_revenue/:
+    get:
+      operationId: app_period_metric_revenue_retrieve
+      description: Returns the revenue for an organization in a given time period.
+      parameters:
+        - in: query
+          name: period_1_end_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: period_1_start_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: period_2_end_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: period_2_start_date
+          schema:
+            type: string
+            format: date
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeriodMetricRevenueResponse"
+          description: ""
+  /app/period_metric_usage/:
+    get:
+      operationId: app_period_metric_usage_retrieve
+      description: Return current usage for a customer during a given billing period.
+      parameters:
+        - in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: top_n_customers
+          schema:
+            type: integer
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeriodMetricUsageResponse"
+          description: ""
+  /app/period_subscriptions/:
+    get:
+      operationId: app_period_subscriptions_retrieve
+      parameters:
+        - in: query
+          name: period_1_end_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: period_1_start_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: period_2_end_date
+          schema:
+            type: string
+            format: date
+          required: true
+        - in: query
+          name: period_2_start_date
+          schema:
+            type: string
+            format: date
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PeriodSubscriptionsResponse"
+          description: ""
+  /app/plan_versions/:
+    post:
+      operationId: app_plan_versions_create
+      description: A simple ViewSet for viewing and editing PlanVersions.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanVersion"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PlanVersion"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PlanVersion"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanVersion"
+          description: ""
+  /app/plan_versions/{version_id}/:
+    patch:
+      operationId: app_plan_versions_partial_update
+      description: A simple ViewSet for viewing and editing PlanVersions.
+      parameters:
+        - in: path
+          name: version_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedPlanVersionUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedPlanVersionUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedPlanVersionUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanVersionUpdate"
+          description: ""
+  /app/plans/:
+    get:
+      operationId: app_plans_list
+      description: A simple ViewSet for viewing and editing Products.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+          description: ""
+    post:
+      operationId: app_plans_create
+      description: A simple ViewSet for viewing and editing Products.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Plan"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Plan"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Plan"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+          description: ""
+  /app/plans/{plan_id}/:
+    get:
+      operationId: app_plans_retrieve
+      description: A simple ViewSet for viewing and editing Products.
+      parameters:
+        - in: path
+          name: plan_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+          description: ""
+    patch:
+      operationId: app_plans_partial_update
+      description: A simple ViewSet for viewing and editing Products.
+      parameters:
+        - in: path
+          name: plan_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedPlanUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedPlanUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedPlanUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanUpdate"
+          description: ""
+  /app/plans_by_customer/:
+    get:
+      operationId: app_plans_by_customer_retrieve
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlansByNumCustomers"
+          description: ""
+  /app/pricing_units/:
+    get:
+      operationId: app_pricing_units_list
+      description: A simple ViewSet for viewing and editing PricingUnits.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PricingUnit"
+          description: ""
+    post:
+      operationId: app_pricing_units_create
+      description: A simple ViewSet for viewing and editing PricingUnits.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingUnit"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PricingUnit"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PricingUnit"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingUnit"
+          description: ""
+  /app/products/:
+    get:
+      operationId: app_products_list
+      description: A simple ViewSet for viewing and editing Products.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+          description: ""
+    post:
+      operationId: app_products_create
+      description: A simple ViewSet for viewing and editing Products.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Product"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Product"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+          description: ""
+  /app/products/{product_id}/:
+    get:
+      operationId: app_products_retrieve
+      description: A simple ViewSet for viewing and editing Products.
+      parameters:
+        - in: path
+          name: product_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+          description: ""
+  /app/register/:
+    post:
+      operationId: app_register_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Registration"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Registration"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Registration"
+        required: true
+      security:
+        - basicAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegistrationSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegistrationFailure"
+          description: ""
+  /app/session/:
+    get:
+      operationId: app_session_retrieve
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionSuccess"
+          description: ""
+  /app/subscriptions/:
+    get:
+      operationId: app_subscriptions_list
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific customer.
+          required: true
+        - in: query
+          name: plan_id
+          schema:
+            type: string
+            minLength: 1
+          description:
+            Filter to a specific plan. If not specified, all plans will be
+            canceled.
+        - in: query
+          name: range_end
+          schema:
+            type: string
+            format: date-time
+          description:
+            If specified, will only return subscriptions with a start date
+            before this date.
+        - in: query
+          name: range_start
+          schema:
+            type: string
+            format: date-time
+          description:
+            If specified, will only return subscriptions with an end date
+            after this date.
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              enum:
+                - active
+                - ended
+                - not_started
+              type: string
+            default:
+              - active
+          description:
+            Filter to a specific set of subscription statuses. Defaults to
+            active.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+    post:
+      operationId: app_subscriptions_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /app/subscriptions/add/:
+    post:
+      operationId: app_subscriptions_add_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecord"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /app/subscriptions/cancel/:
+    post:
+      operationId: app_subscriptions_cancel_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific customer.
+          required: true
+        - in: query
+          name: plan_id
+          schema:
+            type: string
+            minLength: 1
+          description:
+            Filter to a specific plan. If not specified, all plans will be
+            canceled.
+        - in: query
+          name: subscription_filters
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+          description:
+            Filter to a specific set of subscription filters. If your billing
+            model only allows for one subscription per customer, you very likely do
+            not need this field. Must be formatted as a JSON-encoded + stringified list
+            of dictionaries, where each dictionary has a key of 'property_name' and
+            a key of 'value'.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordCancel"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordCancel"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordCancel"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /app/subscriptions/update/:
+    post:
+      operationId: app_subscriptions_update_create
+      description: A simple ViewSet for viewing and editing Subscriptions.
+      parameters:
+        - in: query
+          name: customer_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific customer.
+          required: true
+        - in: query
+          name: plan_id
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to a specific plan.
+          required: true
+        - in: query
+          name: subscription_filters
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+          description:
+            Filter to a specific set of subscription filters. If your billing
+            model only allows for one subscription per customer, you very likely do
+            not need this field. Must be formatted as a JSON-encoded + stringified list
+            of dictionaries, where each dictionary has a key of 'property_name' and
+            a key of 'value'.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordUpdate"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordUpdate"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRecordUpdate"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriptionRecord"
+          description: ""
+  /app/transfer_subscriptions/:
+    post:
+      operationId: app_transfer_subscriptions_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferSubscriptionsRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/TransferSubscriptionsRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/TransferSubscriptionsRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferSubscriptionsSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferSubscriptionsFailure"
+          description: ""
+  /app/user/password/reset/:
+    post:
+      operationId: app_user_password_reset_create
+      description: Verifies the token and resets the password.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+        required: true
+      security:
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetPasswordSuccess"
+          description: ""
+  /app/user/password/reset/init/:
+    post:
+      operationId: app_user_password_reset_init_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Email"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Email"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/Email"
+        required: true
+      security:
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitResetPasswordSuccess"
+          description: ""
+  /app/users/:
+    get:
+      operationId: app_users_list
+      description: A simple ViewSet for viewing and editing Users.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+          description: ""
+    post:
+      operationId: app_users_create
+      description: A simple ViewSet for viewing and editing Users.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/User"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+          description: ""
+  /app/webhooks/:
+    get:
+      operationId: app_webhooks_list
+      description: API endpoint that allows alerts to be viewed or edited.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookEndpoint"
+          description: ""
+    post:
+      operationId: app_webhooks_create
+      description: API endpoint that allows alerts to be viewed or edited.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookEndpoint"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/WebhookEndpoint"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/WebhookEndpoint"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookEndpoint"
+          description: ""
+  /app/webhooks/{webhook_endpoint_id}/:
+    get:
+      operationId: app_webhooks_retrieve
+      description: API endpoint that allows alerts to be viewed or edited.
+      parameters:
+        - in: path
+          name: webhook_endpoint_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookEndpoint"
+          description: ""
+    patch:
+      operationId: app_webhooks_partial_update
+      description: API endpoint that allows alerts to be viewed or edited.
+      parameters:
+        - in: path
+          name: webhook_endpoint_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchedWebhookEndpoint"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/PatchedWebhookEndpoint"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/PatchedWebhookEndpoint"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookEndpoint"
+          description: ""
+    delete:
+      operationId: app_webhooks_destroy
+      description: API endpoint that allows alerts to be viewed or edited.
+      parameters:
+        - in: path
+          name: webhook_endpoint_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "204":
+          description: No response body
+  /stripe/webhook/:
+    post:
+      operationId: stripe_webhook_create
+      tags:
+        - stripe
+      security:
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          description: No response body
+components:
+  schemas:
+    APIToken:
+      type: object
+      properties:
+        name:
+          type: string
+          description:
+            A free-form name for the API key. Need not be unique. 50 characters
+            max.
+          maxLength: 50
+        prefix:
+          type: string
+          readOnly: true
+        expiry_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: Expires
+          description: Once API key expires, clients cannot use it anymore.
+        created:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - created
+        - prefix
+    APITokenCreateResponse:
+      type: object
+      properties:
+        api_key:
+          $ref: "#/components/schemas/APIToken"
+        key:
+          type: string
+      required:
+        - api_key
+        - key
+    APITokenRollResponse:
+      type: object
+      properties:
+        api_key:
+          $ref: "#/components/schemas/APIToken"
+        key:
+          type: string
+      required:
+        - api_key
+        - key
+    Action:
+      type: object
+      description: DRF serializer for :class:`~activity.models.Action`.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        actor:
+          type: string
+          readOnly: true
+        verb:
+          type: string
+          maxLength: 255
+        action_object:
+          type: string
+          readOnly: true
+        target:
+          type: string
+          readOnly: true
+        public:
+          type: boolean
+        description:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - action_object
+        - actor
+        - id
+        - target
+        - verb
+    AllSubstitutionResults:
+      type: object
+      properties:
+        substitution_results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleSubstitution"
+        original_plans_revenue:
+          type: number
+          format: double
+        new_plans_revenue:
+          type: number
+          format: double
+        pct_revenue_change:
+          type: number
+          format: double
+          nullable: true
+    BacktestCreate:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        substitutions:
+          type: array
+          items:
+            $ref: "#/components/schemas/BacktestSubstitutionMulti"
+          writeOnly: true
+        kpis:
+          type: array
+          items:
+            enum:
+              - total_revenue
+            type: string
+        backtest_name:
+          type: string
+          maxLength: 100
+      required:
+        - backtest_name
+        - end_date
+        - kpis
+        - start_date
+        - substitutions
+    BacktestDetail:
+      type: object
+      properties:
+        backtest_name:
+          type: string
+          maxLength: 100
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        time_created:
+          type: string
+          format: date-time
+        kpis:
+          type: object
+          additionalProperties: {}
+        status:
+          enum:
+            - running
+            - completed
+            - failed
+          type: string
+        backtest_id:
+          type: string
+          maxLength: 100
+        backtest_substitutions:
+          type: array
+          items:
+            $ref: "#/components/schemas/BacktestSubstitution"
+        backtest_results:
+          $ref: "#/components/schemas/AllSubstitutionResults"
+      required:
+        - backtest_name
+        - backtest_results
+        - backtest_substitutions
+        - end_date
+        - start_date
+    BacktestSubstitution:
+      type: object
+      properties:
+        new_plan:
+          $ref: "#/components/schemas/PlanVersion"
+        original_plan:
+          $ref: "#/components/schemas/PlanVersion"
+      required:
+        - new_plan
+        - original_plan
+    BacktestSubstitutionMulti:
+      type: object
+      properties:
+        new_plan:
+          type: string
+        original_plans:
+          type: array
+          items:
+            type: string
+      required:
+        - new_plan
+        - original_plans
+    BacktestSummary:
+      type: object
+      properties:
+        backtest_name:
+          type: string
+          maxLength: 100
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        time_created:
+          type: string
+          format: date-time
+        kpis:
+          type: object
+          additionalProperties: {}
+        status:
+          enum:
+            - running
+            - completed
+            - failed
+          type: string
+        backtest_id:
+          type: string
+          maxLength: 100
+      required:
+        - backtest_name
+        - end_date
+        - start_date
+    BatchEvent:
+      type: object
+      properties:
+        batch:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+      required:
+        - batch
+    CategoricalFilter:
+      type: object
+      properties:
+        property_name:
+          type: string
+          maxLength: 100
+        operator:
+          enum:
+            - isin
+            - isnotin
+          type: string
+        comparison_value:
+          type: array
+          items:
+            type: string
+      required:
+        - comparison_value
+        - operator
+        - property_name
+    ConfirmIdemsReceived:
+      type: object
+      properties:
+        status:
+          enum:
+            - success
+          type: string
+        ids_not_found:
+          type: array
+          items:
+            type: string
+      required:
+        - ids_not_found
+        - status
+    ConfirmIdemsReceivedFailure:
+      type: object
+      properties:
+        status:
+          enum:
+            - failure
+          type: string
+        error:
+          type: string
+      required:
+        - error
+        - status
+    ConfirmIdemsReceivedRequest:
+      type: object
+      properties:
+        idempotency_ids:
+          type: array
+          items:
+            type: string
+        number_days_lookback:
+          type: integer
+          default: 30
+        customer_id:
+          type: string
+      required:
+        - idempotency_ids
+    CostAnalysis:
+      type: object
+      properties:
+        per_day:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleDayCostAnalysis"
+        total_cost:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        total_revenue:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        margin:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - margin
+        - per_day
+        - total_cost
+        - total_revenue
+    Customer:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          nullable: true
+          description: The display name of the customer
+          maxLength: 100
+        customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          description:
+            The primary email address of the customer, must be the same
+            as the email address used to create the customer in the payment provider
+        payment_provider:
+          enum:
+            - stripe
+          type: string
+          description:
+            The payment provider this customer is associated with. Currently,
+            only Stripe is supported.
+        payment_provider_id:
+          type: string
+          writeOnly: true
+          nullable: true
+          description:
+            The customer's ID in the specified payment provider. Please
+            note that payment_provider and payment_provider_id are mutually necessary.
+        properties:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description: Extra metadata for the customer
+        default_currency_code:
+          type: string
+          writeOnly: true
+          description:
+            The currency code this customer will be invoiced in. Codes
+            are 3 letters, e.g. 'USD'.
+      required:
+        - customer_id
+        - email
+    CustomerBalanceAdjustment:
+      type: object
+      properties:
+        adjustment_id:
+          type: string
+          maxLength: 100
+        customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+        amount:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        pricing_unit_code:
+          type: string
+          writeOnly: true
+        pricing_unit:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+        description:
+          type: string
+          nullable: true
+        effective_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          enum:
+            - active
+            - inactive
+          type: string
+        parent_adjustment_id:
+          type: string
+          readOnly: true
+      required:
+        - amount
+        - customer_id
+        - parent_adjustment_id
+        - pricing_unit
+        - pricing_unit_code
+    CustomerBatchCreateFailure:
+      type: object
+      properties:
+        success:
+          enum:
+            - none
+          type: string
+        failed_customers:
+          type: object
+          additionalProperties: {}
+      required:
+        - failed_customers
+        - success
+    CustomerBatchCreateRequest:
+      type: object
+      properties:
+        customers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Customer"
+        behavior_on_existing:
+          enum:
+            - merge
+            - ignore
+            - overwrite
+          type: string
+      required:
+        - behavior_on_existing
+        - customers
+    CustomerBatchCreateSuccess:
+      type: object
+      properties:
+        success:
+          enum:
+            - all
+            - some
+          type: string
+        failed_customers:
+          type: object
+          additionalProperties: {}
+      required:
+        - success
+    CustomerDetail:
+      type: object
+      properties:
+        customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          nullable: true
+          description:
+            The primary email address of the customer, must be the same
+            as the email address used to create the customer in the payment provider
+          maxLength: 100
+        customer_name:
+          type: string
+          nullable: true
+          description: The display name of the customer
+          maxLength: 100
+        invoices:
+          type: array
+          items:
+            $ref: "#/components/schemas/LightweightInvoice"
+          readOnly: true
+        total_amount_due:
+          type: number
+          format: double
+          readOnly: true
+        subscriptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionRecord"
+          readOnly: true
+        integrations:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description:
+            A dictionary containing the customer's integrations. Keys are
+            the integration type, and the value is a dictionary containing the integration's
+            properties, which can vary by integration.
+        default_currency:
+          $ref: "#/components/schemas/PricingUnit"
+      required:
+        - default_currency
+        - integrations
+        - invoices
+        - subscriptions
+        - total_amount_due
+    CustomerSummary:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          nullable: true
+          description: The display name of the customer
+          maxLength: 100
+        customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          maxLength: 50
+        subscriptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionCustomerSummary"
+          readOnly: true
+      required:
+        - subscriptions
+    CustomerUpdate:
+      type: object
+      properties:
+        default_currency_code:
+          type: string
+      required:
+        - default_currency_code
+    CustomerWithRevenue:
+      type: object
+      properties:
+        customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          maxLength: 50
+        total_amount_due:
+          type: number
+          format: double
+          readOnly: true
+      required:
+        - total_amount_due
+    DayMetricUsage:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        customer_usages:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+            maximum: 10000000000
+            minimum: -10000000000
+            exclusiveMaximum: true
+            exclusiveMinimum: true
+      required:
+        - customer_usages
+        - date
+    DemoRegistration:
+      type: object
+      properties:
+        register:
+          $ref: "#/components/schemas/DemoRegistrationDetail"
+      required:
+        - register
+    DemoRegistrationDetail:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        username:
+          type: string
+      required:
+        - email
+        - password
+        - username
+    DemoRegistrationFailure:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    DemoRegistrationSuccess:
+      type: object
+      properties:
+        detail:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - detail
+        - token
+        - user
+    DraftInvoice:
+      type: object
+      properties:
+        payment_status:
+          enum:
+            - draft
+          type: string
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        customer:
+          allOf:
+            - $ref: "#/components/schemas/ShortCustomer"
+          readOnly: true
+        org_connected_to_cust_payment_provider:
+          type: boolean
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupedLineItem"
+          readOnly: true
+        issue_date:
+          type: string
+          format: date-time
+        cost_due:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        cust_connected_to_payment_provider:
+          type: boolean
+      required:
+        - cost_due
+        - currency
+        - customer
+        - line_items
+        - payment_status
+    DraftInvoiceResponse:
+      type: object
+      properties:
+        invoice:
+          type: array
+          items:
+            $ref: "#/components/schemas/DraftInvoice"
+    Email:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    Event:
+      type: object
+      properties:
+        event_name:
+          type: string
+          description: String name of the event, corresponds to definition in metrics
+          maxLength: 100
+        properties:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          description:
+            Extra metadata on the event that can be filtered and queried
+            on in the metrics. All key value pairs should have string keys and values
+            can be either strings or numbers. Place subscription filters in this object
+            to specify which subscription the event should be tracked under
+        time_created:
+          type: string
+          format: date-time
+          description:
+            The time that the event occured, represented as a datetime
+            in ISO 8601 in the UTC timezome.
+        idempotency_id:
+          type: string
+          description:
+            A unique identifier for the specific event being passed in.
+            Passing in a unique id allows Lotus to make sure no double counting occurs.
+            We recommend using a UUID4. You can use the same idempotency_id again
+            after 7 days
+        customer_id:
+          type: string
+          description:
+            The id of the customer that this event is associated with,
+            usually the customer id in your backend
+      required:
+        - customer_id
+        - event_name
+        - idempotency_id
+        - time_created
+    ExternalPlanLink:
+      type: object
+      properties:
+        plan_id:
+          type: string
+          writeOnly: true
+        source:
+          enum:
+            - stripe
+          type: string
+        external_plan_id:
+          type: string
+          maxLength: 100
+      required:
+        - external_plan_id
+        - plan_id
+        - source
+    Feature:
+      type: object
+      properties:
+        feature_name:
+          type: string
+          maxLength: 200
+        feature_description:
+          type: string
+          nullable: true
+          maxLength: 200
+      required:
+        - feature_name
+    GetCustomerEventAccessFailure:
+      type: object
+      properties:
+        status:
+          enum:
+            - error
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    GetCustomerFeatureAccessFailure:
+      type: object
+      properties:
+        status:
+          enum:
+            - error
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    GetEventAccess:
+      type: object
+      properties:
+        event_name:
+          type: string
+          description: The name of the event you are checking access for.
+        plan_id:
+          type: string
+          description:
+            The plan_id of the plan we are checking that has access to
+            this feature.
+        subscription_filters:
+          type: object
+          additionalProperties:
+            type: string
+          description:
+            The subscription filters that are applied to this plan's relationship
+            with the customer. If your billing model does not have the ability multiple
+            plans or subscriptions per customer, this is likely nto relevant for you.
+        has_event:
+          type: boolean
+          description: Whether or not the plan has access to this event.
+        usage_per_metric:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricDetail"
+          description:
+            The usage of each metric for this event. Since a plan can have
+            multiple metrics that rely on the same event, this is a list of all the
+            metrics that are used by this event. For example, you might have a metric
+            both for the total number of transactions and the rate of transactions.
+            If you are checking access for the 'transaction' event, this will return
+            the usage of both the 'total_transactions' and 'transaction_rate' metrics.
+      required:
+        - event_name
+        - has_event
+        - plan_id
+        - subscription_filters
+        - usage_per_metric
+    GetFeatureAccess:
+      type: object
+      properties:
+        feature:
+          type: string
+          description: Name of the feature to check access for.
+        plan_id:
+          type: string
+          description:
+            The plan_id of the plan we are checking that has access to
+            this feature.
+        subscription_filters:
+          type: object
+          additionalProperties:
+            type: string
+          description:
+            The subscription filters that are applied to this plan's relationship
+            with the customer. If your billing model does not have the ability multiple
+            plans or subscriptions per customer, this is likely nto relevant for you.
+        access:
+          type: boolean
+          description:
+            Whether or not the plan has access to this feature. If your
+            customer can have multiple plans or subscriptions, then you must check
+            the 'access' across all returned plans to determine if the customer can
+            access this feature.
+      required:
+        - access
+        - feature
+        - plan_id
+        - subscription_filters
+    GroupedLineItem:
+      type: object
+      properties:
+        plan_name:
+          type: string
+        subscription_filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+        subtotal:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        sub_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LightweightInvoiceLineItem"
+      required:
+        - end_date
+        - plan_name
+        - start_date
+        - sub_items
+        - subscription_filters
+        - subtotal
+    ImportCustomerFailure:
+      type: object
+      properties:
+        status:
+          enum:
+            - error
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    ImportCustomerSuccess:
+      type: object
+      properties:
+        status:
+          enum:
+            - success
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    ImportCustomersRequest:
+      type: object
+      properties:
+        source:
+          enum:
+            - stripe
+          type: string
+      required:
+        - source
+    ImportPaymentObjectFailure:
+      type: object
+      properties:
+        status:
+          enum:
+            - error
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    ImportPaymentObjectSuccess:
+      type: object
+      properties:
+        status:
+          enum:
+            - success
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    ImportPaymentObjectsRequest:
+      type: object
+      properties:
+        source:
+          enum:
+            - stripe
+          type: string
+      required:
+        - source
+    InitResetPasswordSuccess:
+      type: object
+      properties:
+        email:
+          type: string
+      required:
+        - email
+    InitialExternalPlanLink:
+      type: object
+      properties:
+        source:
+          enum:
+            - stripe
+          type: string
+        external_plan_id:
+          type: string
+          maxLength: 100
+      required:
+        - external_plan_id
+        - source
+    InitialPlanVersion:
+      type: object
+      properties:
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/Feature"
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        currency_code:
+          type: string
+          writeOnly: true
+        day_anchor:
+          type: integer
+          maximum: 31
+          minimum: 1
+          nullable: true
+        flat_fee_billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+          type: string
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+        plan_name:
+          type: string
+          readOnly: true
+        replace_with:
+          type: integer
+          nullable: true
+          readOnly: true
+        transition_to_plan_id:
+          type: string
+          writeOnly: true
+        flat_rate:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        usage_billing_frequency:
+          enum:
+            - monthly
+            - quarterly
+            - end_of_period
+            - ""
+            - null
+          type: string
+          nullable: true
+        active_subscriptions:
+          type: integer
+          readOnly: true
+        description:
+          type: string
+          nullable: true
+          maxLength: 200
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanComponent"
+          nullable: true
+        price_adjustment:
+          $ref: "#/components/schemas/PriceAdjustment"
+        status:
+          enum:
+            - active
+            - retiring
+            - grandfathered
+            - archived
+            - inactive
+          type: string
+          readOnly: true
+        transition_to:
+          type: string
+          nullable: true
+          readOnly: true
+        month_anchor:
+          type: integer
+          maximum: 12
+          minimum: 1
+          nullable: true
+      required:
+        - active_subscriptions
+        - currency
+        - flat_fee_billing_type
+        - plan_name
+        - replace_with
+        - status
+        - transition_to
+        - version
+    InviteRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    InviteResponse:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    Invoice:
+      type: object
+      properties:
+        invoice_number:
+          type: string
+          maxLength: 13
+        cost_due:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+        issue_date:
+          type: string
+          format: date-time
+        payment_status:
+          enum:
+            - draft
+            - voided
+            - paid
+            - unpaid
+          type: string
+        cust_connected_to_payment_provider:
+          type: boolean
+        org_connected_to_cust_payment_provider:
+          type: boolean
+        external_payment_obj_id:
+          type: string
+          nullable: true
+          maxLength: 200
+        external_payment_obj_type:
+          enum:
+            - stripe
+          type: string
+          readOnly: true
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceLineItem"
+          readOnly: true
+        customer:
+          allOf:
+            - $ref: "#/components/schemas/ShortCustomer"
+          readOnly: true
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - cost_due
+        - currency
+        - customer
+        - external_payment_obj_type
+        - line_items
+        - payment_status
+    InvoiceLineItem:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        quantity:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        subtotal:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+            - ""
+            - null
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        plan_name:
+          type: string
+          readOnly: true
+        subscription_filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+          readOnly: true
+      required:
+        - name
+        - plan_name
+        - subscription_filters
+    InvoiceUpdate:
+      type: object
+      properties:
+        payment_status:
+          enum:
+            - paid
+            - unpaid
+          type: string
+      required:
+        - payment_status
+    LightweightInvoice:
+      type: object
+      properties:
+        payment_status:
+          enum:
+            - draft
+            - voided
+            - paid
+            - unpaid
+          type: string
+        invoice_number:
+          type: string
+          maxLength: 13
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+        issue_date:
+          type: string
+          format: date-time
+        cost_due:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        external_payment_obj_type:
+          enum:
+            - stripe
+          type: string
+          readOnly: true
+        external_payment_obj_id:
+          type: string
+          nullable: true
+          maxLength: 200
+      required:
+        - cost_due
+        - currency
+        - payment_status
+    LightweightInvoiceLineItem:
+      type: object
+      properties:
+        end_date:
+          type: string
+          format: date-time
+        subtotal:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+            - ""
+            - null
+          type: string
+          nullable: true
+        quantity:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        name:
+          type: string
+          maxLength: 200
+        metadata:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        start_date:
+          type: string
+          format: date-time
+      required:
+        - name
+    LoginFailure:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - password
+        - username
+    LoginSuccess:
+      type: object
+      properties:
+        detail:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - detail
+        - token
+        - user
+    LogoutFailure:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    LogoutSuccess:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    Metric:
+      type: object
+      properties:
+        metric_id:
+          type: string
+          readOnly: true
+        event_name:
+          type: string
+          maxLength: 200
+        property_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        usage_aggregation_type:
+          enum:
+            - count
+            - sum
+            - max
+            - unique
+            - latest
+            - average
+          type: string
+        billable_aggregation_type:
+          enum:
+            - count
+            - sum
+            - max
+            - unique
+            - latest
+            - average
+            - ""
+            - null
+          type: string
+          nullable: true
+        granularity:
+          enum:
+            - seconds
+            - minutes
+            - hours
+            - days
+            - months
+            - quarters
+            - years
+            - total
+          type: string
+        event_type:
+          enum:
+            - delta
+            - total
+          type: string
+        metric_type:
+          enum:
+            - counter
+            - stateful
+            - rate
+          type: string
+        billable_metric_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        numeric_filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/NumericFilter"
+          nullable: true
+        categorical_filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoricalFilter"
+          nullable: true
+        is_cost_metric:
+          type: boolean
+      required:
+        - billable_metric_name
+        - event_name
+        - metric_id
+        - metric_type
+        - usage_aggregation_type
+    MetricDetail:
+      type: object
+      properties:
+        metric_name:
+          type: string
+          description: The name of the metric.
+        metric_id:
+          type: string
+          description:
+            The metric_id of the metric. This metric_id can be found in
+            the Lotus frontend if you haven't seen it before.
+        metric_usage:
+          type: number
+          format: double
+          description:
+            The current usage of the metric. Keep in mind the current usage
+            of the metric can be different from the billable usage of the metric.
+        metric_free_limit:
+          type: number
+          format: double
+          nullable: true
+          description:
+            If you specified a free tier of usage for this metric, this
+            is the amount of usage that is free. Will be null if you did not specify
+            a free tier for this metric.
+        metric_total_limit:
+          type: number
+          format: double
+          nullable: true
+          description:
+            The total limit of the metric. Will be null if you did not
+            specify a limit for this metric.
+      required:
+        - metric_free_limit
+        - metric_id
+        - metric_name
+        - metric_total_limit
+        - metric_usage
+    MetricRevenue:
+      type: object
+      properties:
+        metric_name:
+          type: string
+        original_plan_revenue:
+          type: number
+          format: double
+        new_plan_revenue:
+          type: number
+          format: double
+      required:
+        - metric_name
+        - new_plan_revenue
+        - original_plan_revenue
+    MetricUpdate:
+      type: object
+      properties:
+        billable_metric_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+    NumericFilter:
+      type: object
+      properties:
+        property_name:
+          type: string
+          maxLength: 100
+        operator:
+          enum:
+            - gte
+            - gt
+            - eq
+            - lt
+            - lte
+          type: string
+        comparison_value:
+          type: number
+          format: double
+      required:
+        - comparison_value
+        - operator
+        - property_name
+    Organization:
+      type: object
+      properties:
+        organization_id:
+          type: string
+          maxLength: 100
+        company_name:
+          type: string
+          maxLength: 100
+        payment_plan:
+          enum:
+            - self_hosted_free
+            - cloud
+            - self_hosted_enterprise
+          type: string
+        payment_provider_ids:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrganizationUser"
+          readOnly: true
+        default_currency:
+          $ref: "#/components/schemas/PricingUnit"
+        available_currencies:
+          type: array
+          items:
+            $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+      required:
+        - available_currencies
+        - company_name
+        - default_currency
+        - users
+    OrganizationSetting:
+      type: object
+      properties:
+        setting_id:
+          type: string
+          readOnly: true
+        setting_name:
+          type: string
+          readOnly: true
+        setting_value:
+          type: string
+          maxLength: 100
+        setting_group:
+          type: string
+          readOnly: true
+          nullable: true
+      required:
+        - setting_group
+        - setting_id
+        - setting_name
+        - setting_value
+    OrganizationUpdate:
+      type: object
+      properties:
+        default_currency_code:
+          type: string
+      required:
+        - default_currency_code
+    OrganizationUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description:
+            Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          type: string
+          readOnly: true
+        status:
+          enum:
+            - Active
+            - Invited
+          type: string
+          default: Active
+      required:
+        - email
+        - role
+        - username
+    PaginatedActionList:
+      type: object
+      properties:
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Action"
+    PaginatedEventList:
+      type: object
+      properties:
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Event"
+    PatchedCustomerUpdate:
+      type: object
+      properties:
+        default_currency_code:
+          type: string
+    PatchedInvoiceUpdate:
+      type: object
+      properties:
+        payment_status:
+          enum:
+            - paid
+            - unpaid
+          type: string
+    PatchedMetricUpdate:
+      type: object
+      properties:
+        billable_metric_name:
+          type: string
+          nullable: true
+          maxLength: 200
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+    PatchedOrganizationSetting:
+      type: object
+      properties:
+        setting_id:
+          type: string
+          readOnly: true
+        setting_name:
+          type: string
+          readOnly: true
+        setting_value:
+          type: string
+          maxLength: 100
+        setting_group:
+          type: string
+          readOnly: true
+          nullable: true
+    PatchedOrganizationUpdate:
+      type: object
+      properties:
+        default_currency_code:
+          type: string
+    PatchedPlanUpdate:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          description: Name of the plan
+          maxLength: 100
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+    PatchedPlanVersionUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+          maxLength: 200
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+        make_active_type:
+          enum:
+            - replace_immediately
+            - replace_on_active_version_renewal
+            - grandfather_active
+          type: string
+        replace_immediately_type:
+          enum:
+            - end_current_subscription_and_bill
+            - end_current_subscription_dont_bill
+            - change_subscription_plan
+          type: string
+        transition_to_plan_id:
+          type: string
+          writeOnly: true
+    PatchedWebhookEndpoint:
+      type: object
+      properties:
+        webhook_endpoint_id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        webhook_url:
+          type: string
+          maxLength: 300
+        webhook_secret:
+          type: string
+          readOnly: true
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookTrigger"
+          readOnly: true
+        triggers_in:
+          type: array
+          items:
+            enum:
+              - invoice.created
+              - invoice.paid
+            type: string
+          writeOnly: true
+    PaymentProviderPostData:
+      type: object
+      properties:
+        payment_processor:
+          enum:
+            - stripe
+          type: string
+        data:
+          type: object
+          additionalProperties: {}
+      required:
+        - data
+        - payment_processor
+    PaymentProviderPostRequest:
+      type: object
+      properties:
+        pp_info:
+          $ref: "#/components/schemas/PaymentProviderPostData"
+      required:
+        - pp_info
+    PaymentProviderPostResponse:
+      type: object
+      properties:
+        payment_processor:
+          enum:
+            - stripe
+          type: string
+        success:
+          type: boolean
+        details:
+          type: string
+      required:
+        - details
+        - payment_processor
+        - success
+    PeriodMetricRevenueResponse:
+      type: object
+      properties:
+        total_revenue_period_1:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        total_revenue_period_2:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        earned_revenue_period_1:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        earned_revenue_period_2:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - earned_revenue_period_1
+        - earned_revenue_period_2
+        - total_revenue_period_1
+        - total_revenue_period_2
+    PeriodMetricUsageResponse:
+      type: object
+      properties:
+        metrics:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/PeriodSingleMetricUsage"
+      required:
+        - metrics
+    PeriodSingleMetricUsage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DayMetricUsage"
+        total_usage:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - data
+        - total_usage
+    PeriodSubscriptionsResponse:
+      type: object
+      properties:
+        period_1_total_subscriptions:
+          type: integer
+        period_1_new_subscriptions:
+          type: integer
+        period_2_total_subscriptions:
+          type: integer
+        period_2_new_subscriptions:
+          type: integer
+      required:
+        - period_1_new_subscriptions
+        - period_1_total_subscriptions
+        - period_2_new_subscriptions
+        - period_2_total_subscriptions
+    Plan:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          description: Name of the plan
+          maxLength: 100
+        plan_duration:
+          enum:
+            - monthly
+            - quarterly
+            - yearly
+          type: string
+          description: Duration of the plan
+        status:
+          enum:
+            - active
+            - archived
+            - experimental
+          type: string
+          readOnly: true
+        external_links:
+          type: array
+          items:
+            $ref: "#/components/schemas/InitialExternalPlanLink"
+          readOnly: true
+          description: The external links that this plan has.
+        plan_id:
+          type: string
+          readOnly: true
+        parent_plan:
+          allOf:
+            - $ref: "#/components/schemas/PlanNameAndID"
+          readOnly: true
+          nullable: true
+          description:
+            If you are using our plan templating feature to create a new
+            plan, this field will be set to the plan that you are using as a template.
+        target_customer:
+          allOf:
+            - $ref: "#/components/schemas/ShortCustomer"
+          readOnly: true
+          nullable: true
+          description:
+            If you are using our plan templating feature to create a new
+            plan, this field will be set to the customer for which this plan is designed
+            for. Keep in mind that this field and the parent_plan field are mutually
+            necessary.
+        display_version:
+          allOf:
+            - $ref: "#/components/schemas/PlanVersion"
+          readOnly: true
+          description:
+            The currently active version of the plan. Customers that get
+            signed up for this plan will be assigned this version.
+        num_versions:
+          type: integer
+          readOnly: true
+          description: The number of versions that this plan has.
+        active_subscriptions:
+          type: integer
+          readOnly: true
+          description:
+            The number of active subscriptions that this plan has across
+            all versions.
+        initial_external_links:
+          type: array
+          items:
+            $ref: "#/components/schemas/InitialExternalPlanLink"
+          writeOnly: true
+        initial_version:
+          allOf:
+            - $ref: "#/components/schemas/InitialPlanVersion"
+          writeOnly: true
+        parent_plan_id:
+          type: string
+          writeOnly: true
+        target_customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          writeOnly: true
+      required:
+        - active_subscriptions
+        - display_version
+        - external_links
+        - initial_version
+        - num_versions
+        - plan_duration
+        - plan_id
+        - plan_name
+        - status
+    PlanComponent:
+      type: object
+      properties:
+        billable_metric:
+          allOf:
+            - $ref: "#/components/schemas/Metric"
+          readOnly: true
+        tiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PriceTier"
+        separate_by:
+          type: array
+          items:
+            type: string
+        proration_granularity:
+          enum:
+            - seconds
+            - minutes
+            - hours
+            - days
+            - months
+            - quarters
+            - years
+            - total
+          type: string
+          default: total
+        pricing_unit:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+      required:
+        - billable_metric
+        - pricing_unit
+        - tiers
+    PlanNameAndID:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          description: Name of the plan
+          maxLength: 100
+        plan_id:
+          type: string
+          maxLength: 100
+      required:
+        - plan_name
+    PlanNameIDVersion:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          readOnly: true
+        plan_id:
+          type: string
+          readOnly: true
+        version:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+        - plan_id
+        - plan_name
+        - version
+    PlanRepresentation:
+      type: object
+      properties:
+        plan_name:
+          type: string
+        plan_id:
+          type: string
+        plan_revenue:
+          type: number
+          format: double
+      required:
+        - plan_id
+        - plan_name
+        - plan_revenue
+    PlanUpdate:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          description: Name of the plan
+          maxLength: 100
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+      required:
+        - plan_name
+        - status
+    PlanVersion:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+          maxLength: 200
+        plan_id:
+          type: string
+        flat_fee_billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+          type: string
+        flat_rate:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanComponent"
+          nullable: true
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/Feature"
+          nullable: true
+        price_adjustment:
+          $ref: "#/components/schemas/PriceAdjustment"
+        usage_billing_frequency:
+          enum:
+            - monthly
+            - quarterly
+            - end_of_period
+            - ""
+            - null
+          type: string
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        active_subscriptions:
+          type: integer
+          readOnly: true
+        status:
+          enum:
+            - active
+            - retiring
+            - grandfathered
+            - archived
+            - inactive
+          type: string
+          readOnly: true
+        plan_name:
+          type: string
+          readOnly: true
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
+      required:
+        - active_subscriptions
+        - currency
+        - flat_fee_billing_type
+        - plan_name
+        - status
+        - version
+    PlanVersionUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+          maxLength: 200
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+        make_active_type:
+          enum:
+            - replace_immediately
+            - replace_on_active_version_renewal
+            - grandfather_active
+          type: string
+        replace_immediately_type:
+          enum:
+            - end_current_subscription_and_bill
+            - end_current_subscription_dont_bill
+            - change_subscription_plan
+          type: string
+        transition_to_plan_id:
+          type: string
+          writeOnly: true
+    PlansByNumCustomers:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SinglePlanNumCustomers"
+        status:
+          enum:
+            - success
+          type: string
+      required:
+        - results
+        - status
+    PriceAdjustment:
+      type: object
+      properties:
+        price_adjustment_name:
+          type: string
+          default: ""
+        price_adjustment_description:
+          type: string
+          nullable: true
+          maxLength: 200
+        price_adjustment_type:
+          enum:
+            - percentage
+            - fixed
+            - price_override
+          type: string
+        price_adjustment_amount:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - price_adjustment_amount
+        - price_adjustment_type
+    PriceTier:
+      type: object
+      properties:
+        type:
+          enum:
+            - flat
+            - per_unit
+            - free
+          type: string
+        range_start:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        range_end:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        cost_per_batch:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        metric_units_per_batch:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          nullable: true
+        batch_rounding_type:
+          enum:
+            - round_up
+            - round_down
+            - round_nearest
+            - no_rounding
+            - ""
+            - null
+          type: string
+          nullable: true
+      required:
+        - range_start
+        - type
+    PricingUnit:
+      type: object
+      properties:
+        code:
+          type: string
+          maxLength: 10
+        name:
+          type: string
+          maxLength: 100
+        symbol:
+          type: string
+          maxLength: 10
+      required:
+        - code
+        - name
+        - symbol
+    Product:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+        product_id:
+          type: string
+          maxLength: 100
+        status:
+          enum:
+            - active
+            - archived
+          type: string
+      required:
+        - name
+        - status
+    Registration:
+      type: object
+      properties:
+        register:
+          $ref: "#/components/schemas/RegistrationDetail"
+      required:
+        - register
+    RegistrationDetail:
+      type: object
+      properties:
+        company_name:
+          type: string
+        industry:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        username:
+          type: string
+      required:
+        - company_name
+        - email
+        - industry
+        - password
+        - username
+    RegistrationFailure:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    RegistrationSuccess:
+      type: object
+      properties:
+        detail:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - detail
+        - token
+        - user
+    ResetPasswordRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+        password:
+          type: string
+        token:
+          type: string
+      required:
+        - password
+        - token
+        - userId
+    ResetPasswordSuccess:
+      type: object
+      properties:
+        detail:
+          type: string
+        token:
+          type: string
+      required:
+        - detail
+        - token
+    RevenueDate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        original_plan_revenue:
+          type: number
+          format: double
+        new_plan_revenue:
+          type: number
+          format: double
+      required:
+        - date
+        - new_plan_revenue
+        - original_plan_revenue
+    SessionSuccess:
+      type: object
+      properties:
+        isAuthenticated:
+          type: boolean
+      required:
+        - isAuthenticated
+    ShortCustomer:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          nullable: true
+          description: The display name of the customer
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          nullable: true
+          description:
+            The primary email address of the customer, must be the same
+            as the email address used to create the customer in the payment provider
+          maxLength: 100
+        customer_id:
+          type: string
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          maxLength: 50
+    SingleCustomerValue:
+      type: object
+      properties:
+        customer_id:
+          type: string
+        customer_name:
+          type: string
+        value:
+          type: number
+          format: double
+      required:
+        - customer_id
+        - customer_name
+        - value
+    SingleDayCostAnalysis:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        cost_data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleMetricCost"
+        revenue:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - cost_data
+        - date
+        - revenue
+    SingleMetricCost:
+      type: object
+      properties:
+        metric:
+          $ref: "#/components/schemas/Metric"
+        cost:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - cost
+        - metric
+    SinglePaymentProvider:
+      type: object
+      properties:
+        payment_provider_name:
+          type: string
+        connected:
+          type: boolean
+        redirect_url:
+          type: string
+          format: uri
+      required:
+        - connected
+        - payment_provider_name
+        - redirect_url
+    SinglePlanNumCustomers:
+      type: object
+      properties:
+        plan_name:
+          type: string
+        num_customers:
+          type: integer
+        percent_total:
+          type: number
+          format: double
+      required:
+        - num_customers
+        - percent_total
+        - plan_name
+    SingleSubstitution:
+      type: object
+      properties:
+        substitution_name:
+          type: string
+        original_plan:
+          $ref: "#/components/schemas/PlanRepresentation"
+        new_plan:
+          $ref: "#/components/schemas/PlanRepresentation"
+        pct_revenue_change:
+          type: number
+          format: double
+          nullable: true
+        results:
+          $ref: "#/components/schemas/SingleSubstitutionResults"
+      required:
+        - new_plan
+        - original_plan
+        - pct_revenue_change
+        - results
+        - substitution_name
+    SingleSubstitutionResults:
+      type: object
+      properties:
+        cumulative_revenue:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueDate"
+        revenue_by_metric:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricRevenue"
+        top_customers:
+          $ref: "#/components/schemas/TopCustomers"
+      required:
+        - cumulative_revenue
+        - revenue_by_metric
+        - top_customers
+    SubscriptionCategoricalFilter:
+      type: object
+      properties:
+        value:
+          type: string
+        property_name:
+          type: string
+          description: "The string name of the property to filter on. Example: 'product_id'"
+      required:
+        - property_name
+        - value
+    SubscriptionCustomerSummary:
+      type: object
+      properties:
+        billing_plan_name:
+          type: string
+        plan_version:
+          type: string
+        end_date:
+          type: string
+          format: date-time
+        auto_renew:
+          type: boolean
+      required:
+        - billing_plan_name
+        - end_date
+        - plan_version
+    SubscriptionRecord:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date-time
+          description:
+            The date the subscription starts. This should be a string in
+            YYYY-MM-DD format of the date in UTC time.
+        end_date:
+          type: string
+          format: date-time
+          description:
+            The date the subscription ends. This should be a string in
+            YYYY-MM-DD format of the date in UTC time. If you don’t set it (recommended),
+            we will use the information in the billing plan to automatically calculate
+            this.
+        auto_renew:
+          type: boolean
+          description: Should the subscription automatically renew? defaults to true
+        is_new:
+          type: boolean
+        subscription_filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+          description:
+            Add filter key, value pairs that define which events will be
+            applied to this plan subscription
+        customer_id:
+          type: string
+          description: The id provided when creating the customer
+          writeOnly: true
+        plan_id:
+          type: string
+          writeOnly: true
+          description: The Lotus plan_id, found in the billing plan object
+        customer:
+          allOf:
+            - $ref: "#/components/schemas/ShortCustomer"
+          readOnly: true
+          description: The customer object associated with this subscription.
+        billing_plan:
+          allOf:
+            - $ref: "#/components/schemas/PlanNameIDVersion"
+          readOnly: true
+          description: The billing plan object associated with this subscription.
+      required:
+        - billing_plan
+        - customer
+        - customer_id
+        - plan_id
+        - start_date
+    SubscriptionRecordCancel:
+      type: object
+      properties:
+        flat_fee_behavior:
+          enum:
+            - refund
+            - prorate
+            - charge_full
+          type: string
+          default: charge_full
+          description:
+            Can either charge the full amount of the flat fee, regardless
+            of how long the customer has been on the plan, prorate the fflat fee,
+            or charge nothing for the flat fee. If the flat fee has already been invoiced
+            (e.g. in advance payment on last subscription), and the reuslting charge
+            is less than the amount already invoiced, the difference will be refunded
+            as a credit. Defaults to charge full amount.
+        usage_behavior:
+          enum:
+            - bill_full
+            - bill_none
+          type: string
+          default: bill_full
+          description:
+            If bill_full, current usage will be billed on the invoice.
+            If bill_none, current unbilled usage will be dropped from the invoice.
+            Defaults to bill_full.
+        invoicing_behavior:
+          enum:
+            - add_to_next_invoice
+            - invoice_now
+          type: string
+          default: invoice_now
+          description:
+            Whether to invoice now or invoice at the end of the billing
+            period. Defaults to invoice now.
+    SubscriptionRecordUpdate:
+      type: object
+      properties:
+        replace_plan_id:
+          type: string
+          writeOnly: true
+          description: The plan to replace the current plan with
+        invoicing_behavior:
+          enum:
+            - add_to_next_invoice
+            - invoice_now
+          type: string
+          default: invoice_now
+          description:
+            The invoicing behavior to use when replacing the plan. Invoice
+            now will invoice the customer for the prorated difference of the old plan
+            and the new plan, whereas add_to_next_invoice will wait until the end
+            of the subscription to do the calculation.
+        usage_behavior:
+          enum:
+            - transfer_to_new_subscription
+            - keep_separate
+          type: string
+          default: transfer_to_new_subscription
+          description:
+            The usage behavior to use when replacing the plan. Transfer
+            to new subscription will transfer the usage from the old subscription
+            to the new subscription, whereas reset_usage will reset the usage to 0
+            for the new subscription, while keeping the old usage on the old subscription
+            and charging for that appropriately at the end of the month.
+        turn_off_auto_renew:
+          type: boolean
+          description: Turn off auto renew for the subscription
+        end_date:
+          type: string
+          format: date-time
+          description: Change the end date for the subscription.
+    TopCustomers:
+      type: object
+      properties:
+        original_plan_revenue:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleCustomerValue"
+        new_plan_revenue:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleCustomerValue"
+        biggest_pct_increase:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleCustomerValue"
+        biggest_pct_decrease:
+          type: array
+          items:
+            $ref: "#/components/schemas/SingleCustomerValue"
+      required:
+        - biggest_pct_decrease
+        - biggest_pct_increase
+        - new_plan_revenue
+        - original_plan_revenue
+    TrackEventFailure:
+      type: object
+      properties:
+        success:
+          enum:
+            - none
+          type: string
+        failed_events:
+          type: object
+          additionalProperties: {}
+      required:
+        - failed_events
+        - success
+    TrackEventSuccess:
+      type: object
+      properties:
+        success:
+          enum:
+            - all
+            - some
+          type: string
+        failed_events:
+          type: object
+          additionalProperties: {}
+      required:
+        - success
+    TransferSubscriptionsFailure:
+      type: object
+      properties:
+        status:
+          enum:
+            - error
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    TransferSubscriptionsRequest:
+      type: object
+      properties:
+        source:
+          enum:
+            - stripe
+          type: string
+        end_now:
+          type: boolean
+      required:
+        - end_now
+        - source
+    TransferSubscriptionsSuccess:
+      type: object
+      properties:
+        status:
+          enum:
+            - success
+          type: string
+        detail:
+          type: string
+      required:
+        - detail
+        - status
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          description:
+            Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        company_name:
+          type: string
+        organization_id:
+          type: string
+      required:
+        - company_name
+        - email
+        - organization_id
+        - username
+    WebhookEndpoint:
+      type: object
+      properties:
+        webhook_endpoint_id:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        webhook_url:
+          type: string
+          maxLength: 300
+        webhook_secret:
+          type: string
+          readOnly: true
+        triggers:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookTrigger"
+          readOnly: true
+        triggers_in:
+          type: array
+          items:
+            enum:
+              - invoice.created
+              - invoice.paid
+            type: string
+          writeOnly: true
+      required:
+        - triggers
+        - triggers_in
+        - webhook_endpoint_id
+        - webhook_secret
+        - webhook_url
+    WebhookTrigger:
+      type: object
+      properties:
+        trigger_name:
+          enum:
+            - invoice.created
+            - invoice.paid
+          type: string
+      required:
+        - trigger_name
+  securitySchemes:
+    OrganizationApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    basicAuth:
+      type: http
+      scheme: basic
+    knoxTokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
