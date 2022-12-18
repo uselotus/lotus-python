@@ -87,9 +87,9 @@ class Client(object):
                 "name": "cancel_subscription",
                 "method": HTTPMethod.DELETE,
             },
-            "edit_subscription": {
-                "url": "/api/subscriptions/edit/",
-                "name": "edit_subscription",
+            "update_subscription": {
+                "url": "/api/subscriptions/update/",
+                "name": "update_subscription",
                 "method": HTTPMethod.PATCH,
             },
             "list_subscriptions": {
@@ -401,7 +401,7 @@ class Client(object):
         obj = parse_obj_as(list[SubscriptionRecord], ret)
         return obj.json()
 
-    def edit_subscription(
+    def update_subscription(
         self,
         customer_id=None,
         plan_id=None,
@@ -439,7 +439,7 @@ class Client(object):
             body["subscription_filters"] = json.dumps(subscription_filters)
 
         body = {
-            "$type": "edit_subscription",
+            "$type": "update_subscription",
         }
         if replace_plan_id:
             body["replace_plan_id"] = replace_plan_id
