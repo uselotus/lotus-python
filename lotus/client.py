@@ -209,7 +209,7 @@ class Client(object):
         }
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(list[CustomerDetail], ret)
+        obj = parse_obj_as(list[Customer], ret)
         return obj.json()
 
     def get_customer(
@@ -225,7 +225,7 @@ class Client(object):
         }
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(CustomerDetail, ret)
+        obj = parse_obj_as(Customer, ret)
         return obj.json()
 
     def create_customer(
@@ -262,7 +262,7 @@ class Client(object):
             body["payment_provider_id"] = payment_provider_id
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(CustomerDetail, ret)
+        obj = parse_obj_as(Customer, ret)
         return obj.json()
 
     # def create_batch_customers(
