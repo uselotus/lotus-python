@@ -71,11 +71,6 @@ class Client(object):
                 "name": "create_customer",
                 "method": HTTPMethod.POST,
             },
-            # "create_batch_customers": {
-            #     "url": "/api/batch_create_customers/",
-            #     "name": "create_batch_customers",
-            #     "method": HTTPMethod.POST,
-            # },
             # subscription
             "create_subscription": {
                 "url": "/api/subscriptions/add/",
@@ -85,12 +80,12 @@ class Client(object):
             "cancel_subscription": {
                 "url": "/api/subscriptions/cancel/",
                 "name": "cancel_subscription",
-                "method": HTTPMethod.DELETE,
+                "method": HTTPMethod.POST,
             },
             "update_subscription": {
                 "url": "/api/subscriptions/update/",
                 "name": "update_subscription",
-                "method": HTTPMethod.PATCH,
+                "method": HTTPMethod.POST,
             },
             "list_subscriptions": {
                 "url": "/api/subscriptions/",
@@ -333,8 +328,8 @@ class Client(object):
         plan_id=None,
         subscription_filters=None,
         flat_fee_behavior=None,
-        bill_usage=None,
-        invoicing_behavior_on_cancel=None,
+        usage_behavior=None,
+        invoicing_behavior=None,
     ):
         if plan_id:
             require("plan_id", plan_id, ID_TYPES)
@@ -343,13 +338,16 @@ class Client(object):
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
-        if bill_usage is not None:
-            require("bill_usage", bill_usage, bool)
-        if invoicing_behavior_on_cancel is not None:
-            assert invoicing_behavior_on_cancel in [
+        if usage_behavior is not None:
+            assert usage_behavior in [
+                "bill_full",
+                "bill_none",
+            ], "usage_behavior must be one of 'bill_full' or 'bill_none'"
+        if invoicing_behavior is not None:
+            assert invoicing_behavior in [
                 "add_to_next_invoice",
                 "invoice_now",
-            ], "invoicing_behavior_on_cancel must be one of 'add_to_next_invoice' or 'invoice_now'"
+            ], "invoicing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
         if flat_fee_behavior is not None:
             assert flat_fee_behavior in [
                 "refund",
@@ -369,11 +367,11 @@ class Client(object):
         if subscription_filters:
             query["subscription_filters"] = json.dumps(subscription_filters)
         if flat_fee_behavior:
-            query["flat_fee_behavior"] = flat_fee_behavior
-        if bill_usage:
-            query["bill_usage"] = bill_usage
-        if invoicing_behavior_on_cancel:
-            query["invoicing_behavior_on_cancel"] = invoicing_behavior_on_cancel
+            body["flat_fee_behavior"] = flat_fee_behavior
+        if usage_behavior:
+            body["usage_behavior"] = usage_behavior
+        if invoicing_behavior:
+            body["invoicing_behavior"] = invoicing_behavior
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[SubscriptionRecord], ret)
@@ -407,7 +405,8 @@ class Client(object):
         plan_id=None,
         subscription_filters=None,
         replace_plan_id=None,
-        replace_plan_invocing_behavior=None,
+        invoicing_behavior=None,
+        usage_behavior=None,
         turn_off_auto_renew=None,
         end_date=None,
     ):
@@ -420,11 +419,16 @@ class Client(object):
             require("value", filter["value"], ID_TYPES)
         if replace_plan_id:
             require("replace_plan_id", replace_plan_id, ID_TYPES)
-        if replace_plan_invocing_behavior is not None:
-            assert replace_plan_invocing_behavior in [
+        if invoicing_behavior is not None:
+            assert invoicing_behavior in [
+                "transfer_to_new_subscription",
+                "keep_separate",
+            ], "invoicing_behavior must be one of 'transfer_to_new_subscription' or 'keep_separate'"
+        if usage_behavior is not None:
+            assert invoicing_behavior in [
                 "add_to_next_invoice",
                 "invoice_now",
-            ], "replace_plan_invocing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
+            ], "usage_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
         if turn_off_auto_renew is not None:
             require("turn_off_auto_renew", turn_off_auto_renew, bool)
         if end_date:
@@ -436,17 +440,21 @@ class Client(object):
         if customer_id:
             query["customer_id"] = customer_id
         if subscription_filters:
-            body["subscription_filters"] = json.dumps(subscription_filters)
+            query["subscription_filters"] = json.dumps(subscription_filters)
 
         body = {
             "$type": "update_subscription",
         }
         if replace_plan_id:
             body["replace_plan_id"] = replace_plan_id
-        if replace_plan_invocing_behavior:
-            body["replace_plan_invocing_behavior"] = replace_plan_invocing_behavior
+        if invoicing_behavior:
+            body["invoicing_behavior"] = invoicing_behavior
         if turn_off_auto_renew:
             body["turn_off_auto_renew"] = turn_off_auto_renew
+        if end_date:
+            body["end_date"] = end_date
+        if usage_behavior:
+            body["usage_behavior"] = usage_behavior
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[SubscriptionRecord], ret)

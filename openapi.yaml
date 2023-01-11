@@ -12,11 +12,71 @@ paths:
       description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
       parameters:
         - in: query
+          name: currency_code
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to adjustments in a specific currency
+        - in: query
           name: customer_id
           schema:
             type: string
             minLength: 1
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
           required: true
+        - in: query
+          name: effective_after
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that are effective after this date
+        - in: query
+          name: effective_before
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that are effective before this date
+        - in: query
+          name: expires_after
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that expire after this date
+        - in: query
+          name: expires_before
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that expire before this date
+        - in: query
+          name: issued_after
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that were issued after this date
+        - in: query
+          name: issued_before
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that were issued before this date
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              enum:
+                - active
+                - inactive
+              type: string
+            default:
+              - inactive
+              - active
+          description:
+            Filter to a specific set of adjustment statuses. Defaults to
+            both active and inactive.
       tags:
         - api
       security:
@@ -41,13 +101,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CustomerBalanceAdjustmentRequest"
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentCreateRequest"
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/CustomerBalanceAdjustmentRequest"
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentCreateRequest"
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CustomerBalanceAdjustmentRequest"
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentCreateRequest"
         required: true
       security:
         - knoxTokenAuth: []
@@ -60,9 +120,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/CustomerBalanceAdjustment"
           description: ""
-  /api/balance_adjustments/{adjustment_id}/:
-    delete:
-      operationId: api_balance_adjustments_destroy
+  /api/balance_adjustments/{adjustment_id}/update/:
+    post:
+      operationId: api_balance_adjustments_update_create
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      parameters:
+        - in: path
+          name: adjustment_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentUpdateRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentUpdateRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentUpdateRequest"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
+  /api/balance_adjustments/{adjustment_id}/void/:
+    post:
+      operationId: api_balance_adjustments_void_create
       description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
       parameters:
         - in: path
@@ -77,8 +171,12 @@ paths:
         - OrganizationApiKeyAuth: []
           TokenAuth: []
       responses:
-        "204":
-          description: No response body
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
   /api/batch_create_customers/:
     post:
       operationId: api_batch_create_customers_create
@@ -121,6 +219,7 @@ paths:
           name: customer_id
           schema:
             type: string
+            minLength: 1
           description: The customer_id of the customer you want to check access.
           required: true
         - in: query
@@ -163,6 +262,7 @@ paths:
           name: customer_id
           schema:
             type: string
+            minLength: 1
           description: The customer_id of the customer you want to check access.
           required: true
         - in: query
@@ -176,6 +276,7 @@ paths:
           name: metric_id
           schema:
             type: string
+            minLength: 1
             nullable: true
           description:
             The metric_id of the metric you are checking access for. Please
@@ -886,11 +987,71 @@ paths:
       description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
       parameters:
         - in: query
+          name: currency_code
+          schema:
+            type: string
+            minLength: 1
+          description: Filter to adjustments in a specific currency
+        - in: query
           name: customer_id
           schema:
             type: string
             minLength: 1
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
           required: true
+        - in: query
+          name: effective_after
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that are effective after this date
+        - in: query
+          name: effective_before
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that are effective before this date
+        - in: query
+          name: expires_after
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that expire after this date
+        - in: query
+          name: expires_before
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that expire before this date
+        - in: query
+          name: issued_after
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that were issued after this date
+        - in: query
+          name: issued_before
+          schema:
+            type: string
+            format: date-time
+          description: Filter to adjustments that were issued before this date
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              enum:
+                - active
+                - inactive
+              type: string
+            default:
+              - inactive
+              - active
+          description:
+            Filter to a specific set of adjustment statuses. Defaults to
+            both active and inactive.
       tags:
         - app
       security:
@@ -915,13 +1076,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CustomerBalanceAdjustmentRequest"
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentCreateRequest"
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/CustomerBalanceAdjustmentRequest"
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentCreateRequest"
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/CustomerBalanceAdjustmentRequest"
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentCreateRequest"
         required: true
       security:
         - knoxTokenAuth: []
@@ -934,9 +1095,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/CustomerBalanceAdjustment"
           description: ""
-  /app/balance_adjustments/{adjustment_id}/:
-    delete:
-      operationId: app_balance_adjustments_destroy
+  /app/balance_adjustments/{adjustment_id}/update/:
+    post:
+      operationId: app_balance_adjustments_update_create
+      description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
+      parameters:
+        - in: path
+          name: adjustment_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentUpdateRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentUpdateRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CustomerBalanceAdjustmentUpdateRequest"
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
+  /app/balance_adjustments/{adjustment_id}/void/:
+    post:
+      operationId: app_balance_adjustments_void_create
       description: A simple ViewSet meant only for creating CustomerBalanceAdjustments.
       parameters:
         - in: path
@@ -951,8 +1146,12 @@ paths:
         - OrganizationApiKeyAuth: []
           TokenAuth: []
       responses:
-        "204":
-          description: No response body
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerBalanceAdjustment"
+          description: ""
   /app/cost_analysis/:
     get:
       operationId: app_cost_analysis_retrieve
@@ -1136,6 +1335,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/CustomerUpdate"
           description: ""
+  /app/demo_login/:
+    post:
+      operationId: app_demo_login_create
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequestRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/LoginRequestRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/LoginRequestRequest"
+        required: true
+      security:
+        - basicAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+        - {}
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginSuccess"
+          description: ""
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginFailure"
+          description: ""
   /app/demo_register/:
     post:
       operationId: app_demo_register_create
@@ -1182,6 +1416,10 @@ paths:
           name: customer_id
           schema:
             type: string
+            minLength: 1
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
           required: true
         - in: query
           name: include_next_period
@@ -1689,6 +1927,29 @@ paths:
     get:
       operationId: app_organization_settings_list
       description: A simple ViewSet for viewing and editing OrganizationSettings.
+      parameters:
+        - in: query
+          name: setting_group
+          schema:
+            enum:
+              - stripe
+            type: string
+            minLength: 1
+          description:
+            Filters organization_settings to a single setting_group. Defaults
+            to returning all settings.
+        - in: query
+          name: setting_name
+          schema:
+            type: array
+            items:
+              enum:
+                - generate_customer_after_creating_in_lotus
+                - subscription_filters
+              type: string
+          description:
+            Filters organization_settings by setting_name. Defaults to returning
+            all settings.
       tags:
         - app
       security:
@@ -1742,13 +2003,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PatchedOrganizationSettingRequest"
+              $ref: "#/components/schemas/PatchedOrganizationSettingUpdateRequest"
           application/x-www-form-urlencoded:
             schema:
-              $ref: "#/components/schemas/PatchedOrganizationSettingRequest"
+              $ref: "#/components/schemas/PatchedOrganizationSettingUpdateRequest"
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/PatchedOrganizationSettingRequest"
+              $ref: "#/components/schemas/PatchedOrganizationSettingUpdateRequest"
       security:
         - knoxTokenAuth: []
         - OrganizationApiKeyAuth: []
@@ -1758,7 +2019,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OrganizationSetting"
+                $ref: "#/components/schemas/OrganizationSettingUpdate"
           description: ""
   /app/organizations/:
     get:
@@ -1778,6 +2039,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Organization"
+          description: ""
+    post:
+      operationId: app_organizations_create
+      description: A simple ViewSet for viewing and editing OrganizationSettings.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizationCreateRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OrganizationCreateRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/OrganizationCreateRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Organization"
           description: ""
   /app/organizations/{organization_id}/:
     patch:
@@ -1811,7 +2100,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OrganizationUpdate"
+                $ref: "#/components/schemas/Organization"
           description: ""
   /app/payment_providers/:
     get:
@@ -2002,7 +2291,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PlanVersion"
+                $ref: "#/components/schemas/PlanVersionDetail"
           description: ""
   /app/plan_versions/{version_id}/:
     patch:
@@ -2041,7 +2330,7 @@ paths:
   /app/plans/:
     get:
       operationId: app_plans_list
-      description: A simple ViewSet for viewing and editing Products.
+      description: ViewSet for viewing and editing Plans.
       tags:
         - app
       security:
@@ -2055,11 +2344,11 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Plan"
+                  $ref: "#/components/schemas/PlanDetail"
           description: ""
     post:
       operationId: app_plans_create
-      description: A simple ViewSet for viewing and editing Products.
+      description: ViewSet for viewing and editing Plans.
       tags:
         - app
       requestBody:
@@ -2083,12 +2372,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Plan"
+                $ref: "#/components/schemas/PlanDetail"
           description: ""
   /app/plans/{plan_id}/:
     get:
       operationId: app_plans_retrieve
-      description: A simple ViewSet for viewing and editing Products.
+      description: ViewSet for viewing and editing Plans.
       parameters:
         - in: path
           name: plan_id
@@ -2106,11 +2395,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Plan"
+                $ref: "#/components/schemas/PlanDetail"
           description: ""
     patch:
       operationId: app_plans_partial_update
-      description: A simple ViewSet for viewing and editing Products.
+      description: ViewSet for viewing and editing Plans.
       parameters:
         - in: path
           name: plan_id
@@ -2563,6 +2852,31 @@ paths:
                 items:
                   $ref: "#/components/schemas/SubscriptionRecord"
           description: ""
+  /app/switch_organization/:
+    post:
+      operationId: app_switch_organization_create
+      description: Get the current settings for the organization.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeUserOrganizationRequestRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/ChangeUserOrganizationRequestRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/ChangeUserOrganizationRequestRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          description: No response body
   /app/transfer_subscriptions/:
     post:
       operationId: app_transfer_subscriptions_create
@@ -2597,6 +2911,94 @@ paths:
               schema:
                 $ref: "#/components/schemas/TransferSubscriptionsFailure"
           description: ""
+  /app/usage_alerts/:
+    get:
+      operationId: app_usage_alerts_list
+      description: ViewSet for viewing and editing UsageAlerts.
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UsageAlert"
+          description: ""
+    post:
+      operationId: app_usage_alerts_create
+      description: ViewSet for viewing and editing UsageAlerts.
+      tags:
+        - app
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsageAlertCreateRequest"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/UsageAlertCreateRequest"
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UsageAlertCreateRequest"
+        required: true
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageAlertCreate"
+          description: ""
+  /app/usage_alerts/{usage_alert_id}/:
+    get:
+      operationId: app_usage_alerts_retrieve
+      description: ViewSet for viewing and editing UsageAlerts.
+      parameters:
+        - in: path
+          name: usage_alert_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageAlert"
+          description: ""
+    delete:
+      operationId: app_usage_alerts_destroy
+      description: ViewSet for viewing and editing UsageAlerts.
+      parameters:
+        - in: path
+          name: usage_alert_id
+          schema:
+            type: string
+          required: true
+      tags:
+        - app
+      security:
+        - knoxTokenAuth: []
+        - OrganizationApiKeyAuth: []
+          TokenAuth: []
+      responses:
+        "204":
+          description: No response body
   /app/user/password/reset/:
     post:
       operationId: app_user_password_reset_create
@@ -2929,6 +3331,70 @@ components:
         - id
         - target
         - verb
+    Address:
+      type: object
+      properties:
+        city:
+          type: string
+          description: City, district, suburb, town, or village
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+          maxLength: 2
+          minLength: 2
+        line1:
+          type: string
+          description: Address line 1 (e.g., street, PO Box, or company name)
+        line2:
+          type: string
+          nullable: true
+          description: Address line 2 (e.g., apartment, suite, unit, or building)
+        postal_code:
+          type: string
+          description: ZIP or postal code
+        state:
+          type: string
+          description: State, county, province, or region
+      required:
+        - city
+        - country
+        - line1
+        - postal_code
+        - state
+    AddressRequest:
+      type: object
+      properties:
+        city:
+          type: string
+          minLength: 1
+          description: City, district, suburb, town, or village
+        country:
+          type: string
+          minLength: 2
+          description: ISO 3166-1 alpha-2 country code
+          maxLength: 2
+        line1:
+          type: string
+          minLength: 1
+          description: Address line 1 (e.g., street, PO Box, or company name)
+        line2:
+          type: string
+          nullable: true
+          description: Address line 2 (e.g., apartment, suite, unit, or building)
+        postal_code:
+          type: string
+          minLength: 1
+          description: ZIP or postal code
+        state:
+          type: string
+          minLength: 1
+          description: State, county, province, or region
+      required:
+        - city
+        - country
+        - line1
+        - postal_code
+        - state
     AllSubstitutionResults:
       type: object
       properties:
@@ -3043,9 +3509,9 @@ components:
       type: object
       properties:
         new_plan:
-          $ref: "#/components/schemas/PlanVersion"
+          $ref: "#/components/schemas/PlanVersionDetail"
         original_plan:
-          $ref: "#/components/schemas/PlanVersion"
+          $ref: "#/components/schemas/PlanVersionDetail"
       required:
         - new_plan
         - original_plan
@@ -3066,10 +3532,12 @@ components:
       properties:
         new_plan:
           type: string
+          minLength: 1
         original_plans:
           type: array
           items:
             type: string
+            minLength: 1
       required:
         - new_plan
         - original_plans
@@ -3134,6 +3602,15 @@ components:
         - comparison_value
         - operator
         - property_name
+    ChangeUserOrganizationRequestRequest:
+      type: object
+      properties:
+        transfer_to_organization_id:
+          type: string
+          minLength: 1
+          description: The organization ID to transfer to
+      required:
+        - transfer_to_organization_id
     ComponentUsage:
       type: object
       properties:
@@ -3276,8 +3753,8 @@ components:
             $ref: "#/components/schemas/SubscriptionRecord"
           readOnly: true
         integrations:
-          type: object
-          additionalProperties: {}
+          allOf:
+            - $ref: "#/components/schemas/CustomerIntegrations"
           readOnly: true
           description:
             A dictionary containing the customer's integrations. Keys are
@@ -3285,13 +3762,36 @@ components:
             properties, which can vary by integration.
         default_currency:
           $ref: "#/components/schemas/PricingUnit"
+        payment_provider:
+          enum:
+            - stripe
+            - null
+          type: string
+          nullable: true
+        has_payment_method:
+          type: boolean
+          readOnly: true
+        address:
+          allOf:
+            - $ref: "#/components/schemas/Address"
+          nullable: true
+          readOnly: true
+        tax_rate:
+          type: number
+          format: double
+          maximum: 999.999900000000025102053768932819366455078125
+          minimum: 0
+          nullable: true
+          description: Tax rate as percentage. For example, 10.5 for 10.5%
       required:
         - customer_id
         - customer_name
         - default_currency
         - email
+        - has_payment_method
         - integrations
         - invoices
+        - payment_provider
         - subscriptions
         - total_amount_due
     CustomerBalanceAdjustment:
@@ -3301,11 +3801,10 @@ components:
           type: string
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-        customer_id:
-          type: string
-          description:
-            The id provided when creating the customer, we suggest matching
-            with your internal customer id in your backend
+        customer:
+          allOf:
+            - $ref: "#/components/schemas/LightweightCustomer"
+          readOnly: true
         amount:
           type: number
           format: double
@@ -3335,12 +3834,24 @@ components:
         parent_adjustment_id:
           type: string
           readOnly: true
+        amount_paid:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        amount_paid_currency:
+          allOf:
+            - $ref: "#/components/schemas/PricingUnit"
+          readOnly: true
       required:
         - amount
-        - customer_id
+        - amount_paid_currency
+        - customer
         - parent_adjustment_id
         - pricing_unit
-    CustomerBalanceAdjustmentRequest:
+    CustomerBalanceAdjustmentCreateRequest:
       type: object
       properties:
         adjustment_id:
@@ -3365,6 +3876,9 @@ components:
           type: string
           minLength: 1
           writeOnly: true
+        pricing_unit:
+          type: integer
+          nullable: true
         description:
           type: string
           nullable: true
@@ -3380,10 +3894,31 @@ components:
             - active
             - inactive
           type: string
+        amount_paid:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+        amount_paid_currency_code:
+          type: string
+          minLength: 1
+          writeOnly: true
       required:
         - amount
         - customer_id
         - pricing_unit_code
+    CustomerBalanceAdjustmentUpdateRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
     CustomerBatchCreateFailure:
       type: object
       properties:
@@ -3476,9 +4011,37 @@ components:
           description:
             The currency code this customer will be invoiced in. Codes
             are 3 letters, e.g. 'USD'.
+        address:
+          allOf:
+            - $ref: "#/components/schemas/AddressRequest"
+          nullable: true
+        tax_rate:
+          type: number
+          format: double
+          maximum: 999.999900000000025102053768932819366455078125
+          minimum: 0
+          nullable: true
+          description: Tax rate as percentage. For example, 10.5 for 10.5%
       required:
         - customer_id
         - email
+    CustomerIntegrations:
+      type: object
+      properties:
+        stripe:
+          allOf:
+            - $ref: "#/components/schemas/CustomerStripeIntegration"
+          nullable: true
+    CustomerStripeIntegration:
+      type: object
+      properties:
+        stripe_id:
+          type: string
+        has_payment_method:
+          type: boolean
+      required:
+        - has_payment_method
+        - stripe_id
     CustomerSummary:
       type: object
       properties:
@@ -3506,6 +4069,17 @@ components:
       properties:
         default_currency_code:
           type: string
+        address:
+          allOf:
+            - $ref: "#/components/schemas/Address"
+          nullable: true
+        tax_rate:
+          type: number
+          format: double
+          maximum: 999.999900000000025102053768932819366455078125
+          minimum: 0
+          nullable: true
+          description: Tax rate as percentage. For example, 10.5 for 10.5%
       required:
         - default_currency_code
     CustomerWithRevenue:
@@ -3588,6 +4162,13 @@ components:
     DraftInvoice:
       type: object
       properties:
+        currency:
+          $ref: "#/components/schemas/PricingUnit"
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupedLineItem"
+          readOnly: true
         cost_due:
           type: number
           format: double
@@ -3597,13 +4178,14 @@ components:
         issue_date:
           type: string
           format: date-time
-        line_items:
-          type: array
-          items:
-            $ref: "#/components/schemas/GroupedLineItem"
+        start_date:
+          type: string
+          format: date
           readOnly: true
-        currency:
-          $ref: "#/components/schemas/PricingUnit"
+        end_date:
+          type: string
+          format: date
+          readOnly: true
         due_date:
           type: string
           format: date-time
@@ -3612,8 +4194,10 @@ components:
         - cost_due
         - currency
         - due_date
+        - end_date
         - issue_date
         - line_items
+        - start_date
     DraftInvoiceResponse:
       type: object
       properties:
@@ -3963,14 +4547,44 @@ components:
     InitialPlanVersionRequest:
       type: object
       properties:
+        price_adjustment:
+          $ref: "#/components/schemas/PriceAdjustmentRequest"
+        flat_fee_billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+          type: string
+          writeOnly: true
+        currency_code:
+          type: string
+          minLength: 1
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanComponentRequest"
+          nullable: true
+        day_anchor:
+          type: integer
+          maximum: 31
+          minimum: 1
+          writeOnly: true
+          nullable: true
         features:
           type: array
           items:
             $ref: "#/components/schemas/FeatureRequest"
           nullable: true
-        transition_to_plan_id:
+        flat_rate:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          exclusiveMaximum: true
+          writeOnly: true
+        description:
           type: string
-          minLength: 1
+          writeOnly: true
+          nullable: true
         usage_billing_frequency:
           enum:
             - monthly
@@ -3981,44 +4595,14 @@ components:
           type: string
           writeOnly: true
           nullable: true
-        flat_fee_billing_type:
-          enum:
-            - in_arrears
-            - in_advance
-          type: string
-          writeOnly: true
-        currency_code:
+        transition_to_plan_id:
           type: string
           minLength: 1
-        description:
-          type: string
-          writeOnly: true
-          nullable: true
-        price_adjustment:
-          $ref: "#/components/schemas/PriceAdjustmentRequest"
         month_anchor:
           type: integer
           maximum: 12
           minimum: 1
           writeOnly: true
-          nullable: true
-        flat_rate:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          exclusiveMaximum: true
-          writeOnly: true
-        day_anchor:
-          type: integer
-          maximum: 31
-          minimum: 1
-          writeOnly: true
-          nullable: true
-        components:
-          type: array
-          items:
-            $ref: "#/components/schemas/PlanComponentRequest"
           nullable: true
       required:
         - flat_fee_billing_type
@@ -4078,22 +4662,41 @@ components:
           items:
             $ref: "#/components/schemas/InvoiceLineItem"
         customer:
-          $ref: "#/components/schemas/LightweightCustomer"
+          $ref: "#/components/schemas/LightweightCustomerSerializerForInvoice"
         due_date:
           type: string
           format: date-time
           nullable: true
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+        end_date:
+          type: string
+          format: date
+          readOnly: true
+        seller:
+          $ref: "#/components/schemas/Seller"
+        invoice_pdf:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 300
       required:
         - cost_due
         - currency
         - customer
         - due_date
+        - end_date
         - external_payment_obj_id
         - external_payment_obj_type
         - invoice_number
+        - invoice_pdf
         - issue_date
         - line_items
         - payment_status
+        - seller
+        - start_date
     InvoiceLineItem:
       type: object
       properties:
@@ -4169,6 +4772,7 @@ components:
           type: string
           format: email
           readOnly: true
+          nullable: true
           description:
             The primary email address of the customer, must be the same
             as the email address used to create the customer in the payment provider
@@ -4183,9 +4787,49 @@ components:
         - customer_id
         - customer_name
         - email
+    LightweightCustomerSerializerForInvoice:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The display name of the customer
+        email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+          description:
+            The primary email address of the customer, must be the same
+            as the email address used to create the customer in the payment provider
+        customer_id:
+          type: string
+          readOnly: true
+          description:
+            The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          pattern: ^[-a-zA-Z0-9_]+$
+        address:
+          allOf:
+            - $ref: "#/components/schemas/Address"
+          nullable: true
+          readOnly: true
+      required:
+        - customer_id
+        - customer_name
+        - email
     LightweightInvoice:
       type: object
       properties:
+        currency:
+          $ref: "#/components/schemas/PricingUnit"
+        external_payment_obj_type:
+          enum:
+            - stripe
+            - null
+          type: string
+          nullable: true
         cost_due:
           type: number
           format: double
@@ -4195,25 +4839,27 @@ components:
         issue_date:
           type: string
           format: date-time
-        external_payment_obj_id:
+        start_date:
           type: string
-          nullable: true
-          maxLength: 100
+          format: date
+          readOnly: true
+        seller:
+          $ref: "#/components/schemas/Seller"
         invoice_number:
           type: string
           maxLength: 13
-        currency:
-          $ref: "#/components/schemas/PricingUnit"
-        external_payment_obj_type:
-          enum:
-            - stripe
-            - null
+        end_date:
           type: string
-          nullable: true
+          format: date
+          readOnly: true
         due_date:
           type: string
           format: date-time
           nullable: true
+        external_payment_obj_id:
+          type: string
+          nullable: true
+          maxLength: 100
         payment_status:
           enum:
             - draft
@@ -4225,41 +4871,20 @@ components:
         - cost_due
         - currency
         - due_date
+        - end_date
         - external_payment_obj_id
         - invoice_number
         - issue_date
         - payment_status
+        - seller
+        - start_date
         - external_payment_obj_type
     LightweightInvoiceLineItem:
       type: object
       properties:
-        end_date:
-          type: string
-          format: date-time
-        subscription_filters:
-          type: array
-          items:
-            $ref: "#/components/schemas/SubscriptionCategoricalFilter"
-        start_date:
-          type: string
-          format: date-time
-        billing_type:
-          enum:
-            - in_arrears
-            - in_advance
-            - null
-          type: string
-          nullable: true
         name:
           type: string
           maxLength: 100
-        quantity:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          exclusiveMaximum: true
-          nullable: true
         subtotal:
           type: number
           format: double
@@ -4267,8 +4892,32 @@ components:
           minimum: -10000000000
           exclusiveMaximum: true
           exclusiveMinimum: true
+        quantity:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          exclusiveMaximum: true
+          nullable: true
+        billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+            - null
+          type: string
+          nullable: true
+        start_date:
+          type: string
+          format: date-time
         plan:
           type: string
+        subscription_filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionCategoricalFilter"
+        end_date:
+          type: string
+          format: date-time
       required:
         - billing_type
         - end_date
@@ -4278,6 +4927,31 @@ components:
         - start_date
         - subscription_filters
         - subtotal
+    LightweightOrganization:
+      type: object
+      properties:
+        organization_id:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        organization_name:
+          type: string
+          maxLength: 100
+        organization_type:
+          enum:
+            - Production
+            - Development
+            - Demo
+            - Internal Demo
+          type: string
+          readOnly: true
+        current:
+          type: boolean
+          readOnly: true
+      required:
+        - current
+        - organization_name
+        - organization_type
     LightweightPlanVersion:
       type: object
       properties:
@@ -4304,6 +4978,23 @@ components:
       required:
         - plan_id
         - plan_name
+    LightweightUser:
+      type: object
+      properties:
+        username:
+          type: string
+          description:
+            Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+      required:
+        - email
+        - username
     LoginFailure:
       type: object
       properties:
@@ -4387,7 +5078,7 @@ components:
           nullable: true
           description:
             The granularity of the metric. Only applies to metrics of type
-            'continuous' or 'rate'.
+            'gauge' or 'rate'.
         event_type:
           enum:
             - delta
@@ -4397,13 +5088,14 @@ components:
           readOnly: true
           nullable: true
           description:
-            Used only for metrics of type 'continuous'. Please refer to
-            our documentation for an explanation of the different types.
+            Used only for metrics of type 'gauge'. Please refer to our
+            documentation for an explanation of the different types.
         metric_type:
           enum:
             - counter
-            - stateful
             - rate
+            - custom
+            - gauge
           type: string
           readOnly: true
           description:
@@ -4425,9 +5117,34 @@ components:
           description:
             Whether or not this metric is a cost metric (used to track
             costs to your business).
+        custom_sql:
+          type: string
+          readOnly: true
+          nullable: true
+          description:
+            A custom SQL query that can be used to define the metric. Please
+            refer to our documentation for more information.
+        proration:
+          enum:
+            - seconds
+            - minutes
+            - hours
+            - days
+            - months
+            - quarters
+            - years
+            - total
+            - ""
+            - null
+          type: string
+          nullable: true
+          description:
+            The proration of the metric. Only applies to metrics of type
+            'gauge'.
       required:
         - aggregation_type
         - categorical_filters
+        - custom_sql
         - event_name
         - event_type
         - granularity
@@ -4440,12 +5157,6 @@ components:
     MetricCreateRequest:
       type: object
       properties:
-        metric_id:
-          type: string
-          writeOnly: true
-          minLength: 1
-          maxLength: 100
-          pattern: ^[-a-zA-Z0-9_]+$
         event_name:
           type: string
           writeOnly: true
@@ -4505,7 +5216,7 @@ components:
           nullable: true
           description:
             The granularity of the metric. Only applies to metrics of type
-            'continuous' or 'rate'.
+            'gauge' or 'rate'.
         event_type:
           enum:
             - delta
@@ -4516,13 +5227,14 @@ components:
           writeOnly: true
           nullable: true
           description:
-            Used only for metrics of type 'continuous'. Please refer to
-            our documentation for an explanation of the different types.
+            Used only for metrics of type 'gauge'. Please refer to our
+            documentation for an explanation of the different types.
         metric_type:
           enum:
             - counter
-            - stateful
             - rate
+            - custom
+            - gauge
           type: string
           writeOnly: true
           description:
@@ -4531,6 +5243,24 @@ components:
         metric_name:
           type: string
           minLength: 1
+        proration:
+          enum:
+            - seconds
+            - minutes
+            - hours
+            - days
+            - months
+            - quarters
+            - years
+            - total
+            - ""
+            - null
+          type: string
+          writeOnly: true
+          nullable: true
+          description:
+            The proration of the metric. Only applies to metrics of type
+            'gauge'.
         properties:
           type: object
           additionalProperties: {}
@@ -4542,11 +5272,17 @@ components:
           description:
             Whether or not this metric is a cost metric (used to track
             costs to your business).
+        custom_sql:
+          type: string
+          writeOnly: true
+          nullable: true
+          description:
+            A custom SQL query that can be used to define the metric. Please
+            refer to our documentation for more information.
       required:
         - event_name
         - metric_name
         - metric_type
-        - usage_aggregation_type
     MetricRevenue:
       type: object
       properties:
@@ -4602,7 +5338,7 @@ components:
           type: string
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
-        company_name:
+        organization_name:
           type: string
           maxLength: 100
         payment_plan:
@@ -4627,40 +5363,98 @@ components:
           items:
             $ref: "#/components/schemas/PricingUnit"
           readOnly: true
+        plan_tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          readOnly: true
+        tax_rate:
+          type: number
+          format: double
+          maximum: 999.999900000000025102053768932819366455078125
+          minimum: 0
+          nullable: true
+          description: Tax rate as percentage. For example, 10.5 for 10.5%
+        invoice_grace_period:
+          type: integer
+          maximum: 365
+          minimum: 0
+          nullable: true
+          readOnly: true
+        linked_organizations:
+          type: array
+          items:
+            $ref: "#/components/schemas/LightweightOrganization"
+          readOnly: true
+        current_user:
+          allOf:
+            - $ref: "#/components/schemas/LightweightUser"
+          readOnly: true
+        address:
+          allOf:
+            - $ref: "#/components/schemas/Address"
+          nullable: true
+          readOnly: true
+        team_name:
+          type: string
+          readOnly: true
       required:
+        - address
         - available_currencies
-        - company_name
+        - current_user
         - default_currency
+        - invoice_grace_period
+        - linked_organizations
+        - organization_name
+        - plan_tags
+        - team_name
         - users
+    OrganizationCreateRequest:
+      type: object
+      properties:
+        organization_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        default_currency_code:
+          type: string
+          minLength: 1
+        organization_type:
+          enum:
+            - development
+            - production
+          type: string
+          default: development
+      required:
+        - organization_name
     OrganizationSetting:
       type: object
       properties:
         setting_id:
           type: string
-          readOnly: true
+          maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
         setting_name:
           type: string
-          readOnly: true
-        setting_value:
-          type: string
           maxLength: 100
+        setting_values:
+          type: object
+          additionalProperties: {}
         setting_group:
           type: string
-          readOnly: true
           nullable: true
+          maxLength: 100
       required:
         - setting_group
         - setting_id
         - setting_name
-        - setting_value
-    OrganizationUpdate:
+        - setting_values
+    OrganizationSettingUpdate:
       type: object
       properties:
-        default_currency_code:
-          type: string
-      required:
-        - default_currency_code
+        setting_values:
+          type: object
+          additionalProperties: {}
     OrganizationUser:
       type: object
       properties:
@@ -4720,6 +5514,17 @@ components:
         default_currency_code:
           type: string
           minLength: 1
+        address:
+          allOf:
+            - $ref: "#/components/schemas/AddressRequest"
+          nullable: true
+        tax_rate:
+          type: number
+          format: double
+          maximum: 999.999900000000025102053768932819366455078125
+          minimum: 0
+          nullable: true
+          description: Tax rate as percentage. For example, 10.5 for 10.5%
     PatchedInvoiceUpdateRequest:
       type: object
       properties:
@@ -4740,19 +5545,38 @@ components:
             - active
             - archived
           type: string
-    PatchedOrganizationSettingRequest:
+    PatchedOrganizationSettingUpdateRequest:
       type: object
       properties:
-        setting_value:
-          type: string
-          minLength: 1
-          maxLength: 100
+        setting_values:
+          type: object
+          additionalProperties: {}
     PatchedOrganizationUpdateRequest:
       type: object
       properties:
         default_currency_code:
           type: string
           minLength: 1
+        address:
+          allOf:
+            - $ref: "#/components/schemas/AddressRequest"
+          nullable: true
+        tax_rate:
+          type: number
+          format: double
+          maximum: 999.999900000000025102053768932819366455078125
+          minimum: 0
+          nullable: true
+          description: Tax rate as percentage. For example, 10.5 for 10.5%
+        invoice_grace_period:
+          type: integer
+          maximum: 365
+          minimum: 0
+          nullable: true
+        plan_tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagRequest"
     PatchedPlanUpdateRequest:
       type: object
       properties:
@@ -4766,6 +5590,10 @@ components:
             - active
             - archived
           type: string
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagRequest"
     PatchedPlanVersionUpdateRequest:
       type: object
       properties:
@@ -4810,6 +5638,7 @@ components:
             enum:
               - invoice.created
               - invoice.paid
+              - usage_alert.triggered
             type: string
           writeOnly: true
     PaymentProviderPostDataRequest:
@@ -4974,6 +5803,12 @@ components:
           description:
             The number of active subscriptions that this plan has across
             all versions.
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          readOnly: true
+          description: The tags that this plan has.
       required:
         - active_subscriptions
         - display_version
@@ -4983,6 +5818,7 @@ components:
         - plan_id
         - plan_name
         - status
+        - tags
         - parent_plan
         - target_customer
     PlanComponent:
@@ -4994,23 +5830,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PriceTier"
-        proration_granularity:
-          enum:
-            - seconds
-            - minutes
-            - hours
-            - days
-            - months
-            - quarters
-            - years
-            - total
-          type: string
         pricing_unit:
           $ref: "#/components/schemas/PricingUnit"
       required:
         - billable_metric
         - pricing_unit
-        - proration_granularity
         - tiers
     PlanComponentRequest:
       type: object
@@ -5019,24 +5843,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PriceTierCreateRequest"
-        proration_granularity:
-          enum:
-            - seconds
-            - minutes
-            - hours
-            - days
-            - months
-            - quarters
-            - years
-            - total
-          type: string
         metric_id:
           type: string
           minLength: 1
           writeOnly: true
       required:
         - metric_id
-        - proration_granularity
     PlanCreateRequest:
       type: object
       properties:
@@ -5082,10 +5894,87 @@ components:
           description:
             The id provided when creating the customer, we suggest matching
             with your internal customer id in your backend
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagRequest"
       required:
         - initial_version
         - plan_duration
         - plan_name
+    PlanDetail:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          description: Name of the plan
+          maxLength: 100
+        plan_duration:
+          enum:
+            - monthly
+            - quarterly
+            - yearly
+          type: string
+          description: Duration of the plan
+        status:
+          enum:
+            - active
+            - archived
+            - experimental
+          type: string
+        external_links:
+          type: array
+          items:
+            $ref: "#/components/schemas/InitialExternalPlanLink"
+          description: The external links that this plan has.
+        plan_id:
+          type: string
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        parent_plan:
+          allOf:
+            - $ref: "#/components/schemas/PlanNameAndID"
+          nullable: true
+        target_customer:
+          allOf:
+            - $ref: "#/components/schemas/LightweightCustomer"
+          nullable: true
+        display_version:
+          $ref: "#/components/schemas/PlanVersionDetail"
+        num_versions:
+          type: integer
+          readOnly: true
+          description: The number of versions that this plan has.
+        active_subscriptions:
+          type: integer
+          readOnly: true
+          description:
+            The number of active subscriptions that this plan has across
+            all versions.
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
+          readOnly: true
+          description: The tags that this plan has.
+        versions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanVersionDetail"
+          readOnly: true
+      required:
+        - active_subscriptions
+        - display_version
+        - external_links
+        - num_versions
+        - parent_plan
+        - plan_duration
+        - plan_id
+        - plan_name
+        - status
+        - tags
+        - target_customer
+        - versions
     PlanNameAndID:
       type: object
       properties:
@@ -5126,9 +6015,10 @@ components:
             - active
             - archived
           type: string
-      required:
-        - plan_name
-        - status
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/Tag"
     PlanVersion:
       type: object
       properties:
@@ -5279,6 +6169,90 @@ components:
       required:
         - flat_fee_billing_type
         - make_active
+    PlanVersionDetail:
+      type: object
+      properties:
+        description:
+          type: string
+          readOnly: true
+          nullable: true
+        flat_fee_billing_type:
+          enum:
+            - in_arrears
+            - in_advance
+          type: string
+          readOnly: true
+        flat_rate:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          readOnly: true
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlanComponent"
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/Feature"
+        price_adjustment:
+          allOf:
+            - $ref: "#/components/schemas/PriceAdjustment"
+          nullable: true
+        usage_billing_frequency:
+          enum:
+            - monthly
+            - quarterly
+            - end_of_period
+            - null
+          type: string
+          readOnly: true
+          nullable: true
+        version:
+          type: integer
+          readOnly: true
+        status:
+          enum:
+            - active
+            - retiring
+            - grandfathered
+            - archived
+            - inactive
+          type: string
+          readOnly: true
+        plan_name:
+          type: string
+        currency:
+          $ref: "#/components/schemas/PricingUnit"
+        version_id:
+          type: string
+          maxLength: 250
+          pattern: ^[-a-zA-Z0-9_]+$
+        plan_id:
+          type: string
+          readOnly: true
+        alerts:
+          type: array
+          items:
+            $ref: "#/components/schemas/UsageAlert"
+          readOnly: true
+      required:
+        - alerts
+        - components
+        - currency
+        - description
+        - features
+        - flat_fee_billing_type
+        - flat_rate
+        - plan_id
+        - plan_name
+        - price_adjustment
+        - status
+        - usage_billing_frequency
+        - version
     PlanVersionUpdate:
       type: object
       properties:
@@ -5562,7 +6536,7 @@ components:
     RegistrationDetailRequest:
       type: object
       properties:
-        company_name:
+        organization_name:
           type: string
         industry:
           type: string
@@ -5576,9 +6550,9 @@ components:
           type: string
           minLength: 1
       required:
-        - company_name
         - email
         - industry
+        - organization_name
         - password
         - username
     RegistrationFailure:
@@ -5650,6 +6624,27 @@ components:
         - date
         - new_plan_revenue
         - original_plan_revenue
+    Seller:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          allOf:
+            - $ref: "#/components/schemas/Address"
+          nullable: true
+          readOnly: true
+        phone:
+          type: string
+          nullable: true
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+      required:
+        - name
     SessionSuccess:
       type: object
       properties:
@@ -6025,6 +7020,41 @@ components:
           type: string
           format: date-time
           description: Change the end date for the subscription.
+    Tag:
+      type: object
+      properties:
+        tag_name:
+          type: string
+          maxLength: 50
+        tag_hex:
+          type: string
+          nullable: true
+          maxLength: 7
+        tag_color:
+          type: string
+          nullable: true
+          maxLength: 20
+      required:
+        - tag_name
+    TagRequest:
+      type: object
+      properties:
+        tag_name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        tag_hex:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 7
+        tag_color:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 20
+      required:
+        - tag_name
     TopCustomers:
       type: object
       properties:
@@ -6112,6 +7142,66 @@ components:
       required:
         - detail
         - status
+    UsageAlert:
+      type: object
+      properties:
+        usage_alert_id:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        metric:
+          $ref: "#/components/schemas/Metric"
+        plan_version:
+          $ref: "#/components/schemas/LightweightPlanVersion"
+        threshold:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - metric
+        - plan_version
+        - threshold
+    UsageAlertCreate:
+      type: object
+      properties:
+        metric_id:
+          type: string
+        plan_version_id:
+          type: string
+        threshold:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - metric_id
+        - plan_version_id
+        - threshold
+    UsageAlertCreateRequest:
+      type: object
+      properties:
+        metric_id:
+          type: string
+          minLength: 1
+        plan_version_id:
+          type: string
+          minLength: 1
+        threshold:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+        - metric_id
+        - plan_version_id
+        - threshold
     User:
       type: object
       properties:
@@ -6126,14 +7216,14 @@ components:
           type: string
           format: email
           maxLength: 254
-        company_name:
+        organization_name:
           type: string
         organization_id:
           type: string
       required:
-        - company_name
         - email
         - organization_id
+        - organization_name
         - username
     UserRequest:
       type: object
@@ -6151,16 +7241,16 @@ components:
           format: email
           minLength: 1
           maxLength: 254
-        company_name:
+        organization_name:
           type: string
           minLength: 1
         organization_id:
           type: string
           minLength: 1
       required:
-        - company_name
         - email
         - organization_id
+        - organization_name
         - username
     WebhookEndpoint:
       type: object
@@ -6207,6 +7297,7 @@ components:
             enum:
               - invoice.created
               - invoice.paid
+              - usage_alert.triggered
             type: string
           writeOnly: true
       required:
@@ -6219,6 +7310,7 @@ components:
           enum:
             - invoice.created
             - invoice.paid
+            - usage_alert.triggered
           type: string
       required:
         - trigger_name
@@ -6229,6 +7321,7 @@ components:
           enum:
             - invoice.created
             - invoice.paid
+            - usage_alert.triggered
           type: string
       required:
         - trigger_name
