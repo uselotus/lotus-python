@@ -8,11 +8,11 @@ import lotus
 now = datetime.now(timezone.utc)
 
 # You can find this key on the /settings page in Lotus
-lotus.api_key = "rFMXBLi6.AHROCI4h2mlfnRF3rtLhAJM7VbidbWlI"
+lotus.api_key = "7dJF7LDK.4NozaW772OasIgns00AwcbuR6xsmUApz"
 
 # Where you host Lotus, with no trailing /.
 # You can remove this line if you're using the cloud version
-lotus.host = "http://localhost:8000"
+lotus.host = "https://api.uselotus.io"
 
 
 # create a customer
@@ -31,11 +31,11 @@ lotus.host = "http://localhost:8000"
 
 
 # # Track an event
-# lotus.track_event(
-#     customer_id="customer_id",
-#     event_name="api_call",
-#     properties={"region": "US", "mb_used": 150},
-# )
+lotus.track_event(
+    customer_id="customer_id",
+    event_name="api_call",
+    properties={"region": "US", "mb_used": 150},
+)
 
 # lotus.track_event(
 #     customer_id="customer_id",
@@ -50,10 +50,6 @@ lotus.host = "http://localhost:8000"
 # # Get a list of subscriptions
 # subscriptions = lotus.list_subscriptions()
 # print("subscriptions", subscriptions)
-
-# # Get a subscription for a customer
-# subscription = lotus.get_subscription(customer_id="customer_id")
-# print("subscription", subscription)
 
 # # Update a subscription
 # lotus.edit_subscription(

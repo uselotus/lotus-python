@@ -9,8 +9,8 @@ monotonic = "*"
 requests = "*"
 python-dateutil = "*"
 six = "*"
-pydantic = "*"
 mypy = "*"
+pydantic = {extras = ["email"], version = "*"}
 
 [dev-packages]
 black = "*"
@@ -23,6 +23,7 @@ twine = "*"
 pytest-mock = "*"
 pipfile = "*"
 datamodel-code-generator = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.10"

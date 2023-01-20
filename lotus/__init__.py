@@ -29,6 +29,20 @@ def list_customers(*args, **kwargs):
 def create_customer(*args, **kwargs):
     return _proxy("create_customer", *args, **kwargs)
 
+def batch_create_customers(*args, **kwargs):
+    return _proxy("batch_create_customers", *args, **kwargs)
+
+def list_credits(*args, **kwargs):
+    return _proxy("list_credits", *args, **kwargs)
+
+def create_credit(*args, **kwargs):
+    return _proxy("create_credit", *args, **kwargs)
+
+def update_credit(*args, **kwargs):
+    return _proxy("update_credit", *args, **kwargs)
+
+def void_credit(*args, **kwargs):
+    return _proxy("void_credit", *args, **kwargs)
 
 def create_subscription(*args, **kwargs):
     return _proxy("create_subscription", *args, **kwargs)
@@ -38,17 +52,12 @@ def cancel_subscription(*args, **kwargs):
     return _proxy("cancel_subscription", *args, **kwargs)
 
 
-def edit_subscription(*args, **kwargs):
-    return _proxy("edit_subscription", *args, **kwargs)
+def update_subscription(*args, **kwargs):
+    return _proxy("update_subscription", *args, **kwargs)
 
 
 def list_subscriptions(*args, **kwargs):
     return _proxy("list_subscriptions", *args, **kwargs)
-
-
-def get_subscription(*args, **kwargs):
-    return _proxy("get_subscription", *args, **kwargs)
-
 
 def get_customer_metric_access(*args, **kwargs):
     return _proxy("get_customer_metric_access", *args, **kwargs)
