@@ -14,7 +14,6 @@ lotus.api_key = API_KEY
 
 class TestEndtoEnd:
     def test_e2e(self):
-        print("api_key: ", lotus.api_key)
         plan_id = "plan_aead7e8eb07249c2b2610e936d24a356"
         id = uuid.uuid4().hex
         response = lotus.create_customer(

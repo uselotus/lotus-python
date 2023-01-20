@@ -9,11 +9,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    environment: Development
+    environment: Deployment
 
     env:
       LOTUS_API_KEY: ${{ secrets.LOTUS_API_KEY }}
-      
+
     steps:
       - uses: actions/checkout@v3
 
