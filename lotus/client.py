@@ -1,20 +1,26 @@
 import atexit
-import json
 import logging
 import numbers
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from queue import Full, Queue
 
-from dateutil.parser import parse
 from dateutil.tz import tzutc
 from pydantic import parse_obj_as
 from six import string_types
 
 from .consumer import Consumer
-from .models import *
+from .models import (
+    Customer,
+    CustomerBalanceAdjustment,
+    GetEventAccess,
+    GetFeatureAccess,
+    Plan,
+    SubscriptionRecord,
+)
 from .request import send
-from .utils import HTTPMethod, clean, guess_timezone, remove_trailing_slash
+from .utils import HTTPMethod, clean
 from .version import VERSION
 
 # try:
@@ -69,6 +75,32 @@ class Client(object):
             "create_customer": {
                 "url": "/api/customers/",
                 "name": "create_customer",
+                "method": HTTPMethod.POST,
+            },
+            # "batch_create_customers": {
+            #     "url": "/api/batch_create_customers/",
+            #     "name": "batch_create_customers",
+            #     "method": HTTPMethod.POST,
+            # },
+            # credits
+            "list_credits": {
+                "url": "/api/credits/",
+                "name": "list_credits",
+                "method": HTTPMethod.GET,
+            },
+            "create_credit": {
+                "url": "/api/credits/",
+                "name": "create_credit",
+                "method": HTTPMethod.POST,
+            },
+            "update_credit": {
+                "url": "/api/credits/",
+                "name": "update_credit",
+                "method": HTTPMethod.POST,
+            },
+            "void_credit": {
+                "url": "/api/credits/",
+                "name": "void_credit",
                 "method": HTTPMethod.POST,
             },
             # subscription
@@ -143,7 +175,7 @@ class Client(object):
             for n in range(thread):
                 self.consumers = []
                 if not host:
-                    host = "https://www.uselotus.app"
+                    host = "https://api.uselotus.io"
                 endpoint_host = host + "/api/track/"
                 consumer = Consumer(
                     self.queue,
@@ -205,7 +237,7 @@ class Client(object):
 
         ret = self._enqueue(body, block=True)
         obj = parse_obj_as(list[Customer], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def get_customer(
         self,
@@ -221,7 +253,7 @@ class Client(object):
 
         ret = self._enqueue(body, block=True)
         obj = parse_obj_as(Customer, ret)
-        return obj.json()
+        return obj.dict()
 
     def create_customer(
         self,
@@ -258,30 +290,164 @@ class Client(object):
 
         ret = self._enqueue(body, block=True)
         obj = parse_obj_as(Customer, ret)
-        return obj.json()
+        return obj.dict()
+    
+    def list_credits(
+        self,
+        customer_id=None,
+        currency_code=None,
+        effective_after=None,
+        effective_before=None,
+        expires_after=None,
+        expires_before=None,
+        issued_after=None,
+        issued_before=None,
+        status=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
 
-    # def create_batch_customers(
-    #     self,
-    #     *,
-    #     customers=[],
-    #     behavior_on_existing=None,
-    # ):
-    #     for customer in customers:
-    #         require("customer_id", customer.customer_id, ID_TYPES)
-    #         require("email", customer.email, ID_TYPES)
+        body = {
+            "$type": "list_credits",
+        }
+        query = {
+            "customer_id": customer_id,
+        }
+        if currency_code:
+            query["currency_code"] = currency_code
+        if effective_after:
+            require("effective_after", effective_after, datetime)
+            query["effective_after"] = effective_after
+        if effective_before:
+            require("effective_before", effective_before, datetime)
+            query["effective_before"] = effective_before
+        if expires_after:
+            require("expires_after", expires_after, datetime)
+            query["expires_after"] = expires_after
+        if expires_before:
+            require("expires_before", expires_before, datetime)
+            query["expires_before"] = expires_before
+        if issued_after:
+            require("issued_after", issued_after, datetime)
+            query["issued_after"] = issued_after
+        if issued_before:
+            require("issued_before", issued_before, datetime)
+            query["issued_before"] = issued_before
+        if status:
+            assert isinstance(status, list) is True, "status must be a list of strings"
+        for s in status or []:
+            assert s in [
+                "active",
+                "inactive",
+            ], "Invalid status"
+            body["status"] = status
 
-    #     require("behavior_on_existing", behavior_on_existing, ID_TYPES)
+        ret = self._enqueue(body, block=True, query=query)
+        obj = parse_obj_as(list[CustomerBalanceAdjustment], ret)
+        return [x.dict() for x in obj]
+    
+    def create_credit(
+        self,
+        customer_id=None, #required
+        amount=None, #required
+        currency_code=None, #required
+        description=None,
+        effective_at=None,
+        expires_at=None,
+        amount_paid=None,
+        amount_paid_currency_code=None,
+    ):
 
-    #     if behavior_on_existing not in ["merge", "ignore", "overwrite"]:
-    #         raise ValueError("Must provide valid value for behavior_on_existing")
+        require("customer_id", customer_id, ID_TYPES)
+        require("amount", amount, (float, int, Decimal))
+        require("currency_code", currency_code, string_types)
 
-    #     body = {
-    #         "$type": "create_batch_customers",
-    #         "customers": customers,
-    #         "behavior_on_existing": behavior_on_existing,
-    #     }
+        body = {
+            "$type": "create_credit",
+            "customer_id": customer_id,
+            "amount": amount,
+            "currency_code": currency_code,
+        }
+        if description:
+            require("description", description, string_types)
+            body["description"] = description
+        if effective_at:
+            require("effective_at", effective_at, datetime)
+            body["effective_at"] = effective_at
+        if expires_at:
+            require("expires_at", expires_at, datetime)
+            body["expires_at"] = expires_at
+        if amount_paid:
+            require("amount_paid", amount_paid, (float, int, Decimal))
+            body["amount_paid"] = amount_paid
+        if amount_paid_currency_code:
+            require("amount_paid_currency_code", amount_paid_currency_code, string_types)
+            body["amount_paid_currency_code"] = amount_paid_currency_code
+        
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(CustomerBalanceAdjustment, ret)
+        return obj.dict()
+    
+    def update_credit(
+        self,
+        credit_id=None,
+        description=None,
+        expires_at=None,
+    ):
+        require("credit_id", credit_id, ID_TYPES)
 
-    #     return self._enqueue(body, block=True)
+        body = {
+            "$type": "update_credit",
+            "$append_to_url": credit_id,
+        }
+        if description:
+            require("description", description, string_types)
+            body["description"] = description
+        if expires_at:
+            require("expires_at", expires_at, datetime)
+            body["expires_at"] = expires_at
+        
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(CustomerBalanceAdjustment, ret)
+        return obj.dict()
+    
+    def void_credit(
+        self,
+        credit_id=None,
+    ):
+        require("credit_id", credit_id, ID_TYPES)
+
+        body = {
+            "$type": "void_credit",
+            "$append_to_url": credit_id,
+        }
+        
+        ret = self._enqueue(body, block=True)
+        obj = parse_obj_as(CustomerBalanceAdjustment, ret)
+        return obj.dict()
+
+
+    def batch_create_customers(
+        self,
+        *,
+        customers=[],
+        behavior_on_existing=None,
+    ):
+        for customer in customers:
+            require("customer_id", customer.customer_id, ID_TYPES)
+            require("email", customer.email, ID_TYPES)
+
+        require("behavior_on_existing", behavior_on_existing, ID_TYPES)
+
+        if behavior_on_existing not in ["merge", "ignore", "overwrite"]:
+            raise ValueError("Must provide valid value for behavior_on_existing")
+
+        body = {
+            "$type": "batch_create_customers",
+            "customers": customers,
+            "behavior_on_existing": behavior_on_existing,
+        }
+
+        return self._enqueue(body, block=True)
 
     def create_subscription(
         self,
@@ -298,6 +464,7 @@ class Client(object):
         require("plan_id", plan_id, ID_TYPES)
         require("start_date", start_date, ID_TYPES)
 
+        
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -319,7 +486,7 @@ class Client(object):
 
         ret = self._enqueue(body, block=True)
         obj = parse_obj_as(SubscriptionRecord, ret)
-        return obj.json()
+        return obj.dict()
 
     def cancel_subscription(
         self,
@@ -335,6 +502,7 @@ class Client(object):
             require("plan_id", plan_id, ID_TYPES)
         if customer_id:
             require("customer_id", customer_id, ID_TYPES)
+        
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -365,7 +533,7 @@ class Client(object):
         if customer_id:
             query["customer_id"] = customer_id
         if subscription_filters:
-            query["subscription_filters"] = json.dumps(subscription_filters)
+            query["subscription_filters"] = subscription_filters
         if flat_fee_behavior:
             body["flat_fee_behavior"] = flat_fee_behavior
         if usage_behavior:
@@ -375,29 +543,51 @@ class Client(object):
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[SubscriptionRecord], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def list_subscriptions(
         self,
         status=None,
+        customer_id=None,
+        plan_id=None,
+        range_end=None,
+        range_start=None,
     ):
-        for s in status or []:
-            assert s in [
-                "active",
-                "ended",
-                "not_started",
-            ], "Invalid status"
+        require("customer_id", customer_id, ID_TYPES)
+        if plan_id:
+            require("plan_id", plan_id, ID_TYPES)
+        if range_end:
+            require("range_end", range_end, datetime)
+        if range_start:
+            require("range_start", range_start, datetime)
+        if status is not None:
+            assert isinstance(status, list), "status must be a list of strings"
+            for s in status or []:
+                assert s in [
+                    "active",
+                    "ended",
+                    "not_started",
+                ], "Invalid status"
+                
 
         body = {
             "$type": "list_subscriptions",
         }
-        query = {}
+        query = {
+            "customer_id": customer_id,
+        }
         if status is not None:
             query["status"] = status
+        if plan_id is not None:
+            query["plan_id"] = plan_id
+        if range_end is not None:
+            query["range_end"] = range_end
+        if range_start is not None:
+            query["range_start"] = range_start
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[SubscriptionRecord], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def update_subscription(
         self,
@@ -414,6 +604,7 @@ class Client(object):
             require("plan_id", plan_id, ID_TYPES)
         if customer_id:
             require("customer_id", customer_id, ID_TYPES)
+        
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -440,7 +631,7 @@ class Client(object):
         if customer_id:
             query["customer_id"] = customer_id
         if subscription_filters:
-            query["subscription_filters"] = json.dumps(subscription_filters)
+            query["subscription_filters"] = subscription_filters
 
         body = {
             "$type": "update_subscription",
@@ -458,7 +649,7 @@ class Client(object):
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[SubscriptionRecord], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def list_plans(
         self,
@@ -470,7 +661,7 @@ class Client(object):
 
         ret = self._enqueue(body, block=True)
         obj = parse_obj_as(list[Plan], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def get_plan(
         self,
@@ -485,16 +676,25 @@ class Client(object):
         }
         ret = self._enqueue(body, block=True)
         obj = parse_obj_as(Plan, ret)
-        return obj.json()
+        return obj.dict()
 
     def get_customer_metric_access(
         self,
         customer_id=None,
         event_name=None,
+        metric_id=None,
+        subscription_filters=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
-        if not event_name:
-            raise ValueError("Must provide event_name")
+        if not event_name and not metric_id:
+            raise ValueError("Must provide event_name or metric_id")
+        if event_name and metric_id:
+            raise ValueError("Must provide event_name or metric_id, not both")
+
+        
+        for filter in subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
 
         body = {
             "$type": "get_customer_metric_access",
@@ -502,11 +702,13 @@ class Client(object):
         query = {
             "customer_id": customer_id,
             "event_name": event_name,
+            "metric_id": metric_id,
+            "subscription_filters": subscription_filters,
         }
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[GetEventAccess], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def get_customer_feature_access(
         self,
@@ -527,7 +729,7 @@ class Client(object):
 
         ret = self._enqueue(body, query=query, block=True)
         obj = parse_obj_as(list[GetFeatureAccess], ret)
-        return obj.json()
+        return [x.dict() for x in obj]
 
     def _enqueue(self, body, query=None, block=False):
         """Push a new `body` onto the queue, return `(success, body)`"""
@@ -555,7 +757,11 @@ class Client(object):
             if self.host:
                 endpoint_host = self.host + endpoint_url
             else:
-                endpoint_host = "https://www.uselotus.app" + endpoint_url
+                endpoint_host = "https://api.uselotus.io" + endpoint_url
+            if operation == "update_credit":
+                endpoint_host = endpoint_host + "update/"
+            elif operation == "void_credit":
+                endpoint_host = endpoint_host + "void/"
             self.log.debug(
                 "enqueued body to %s with blocking %s.", endpoint_host, body["$type"]
             )
@@ -571,7 +777,7 @@ class Client(object):
 
             try:
                 data = response.json()
-            except:
+            except Exception:
                 data = response.text
 
             return data
@@ -622,4 +828,6 @@ def stringify_id(val):
         return None
     if isinstance(val, string_types):
         return val
+    return str(val)
+    return str(val)
     return str(val)

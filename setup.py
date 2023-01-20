@@ -20,7 +20,7 @@ install_requires = [
     "monotonic>=1.5",
     "backoff>=1.6.0",
     "python-dateutil>2.1",
-    "pydantic>=1.10.0",
+    "pydantic[email]>=1.10.0",
 ]
 
 tests_require = ["mock>=2.0.0"]
