@@ -11,6 +11,7 @@ python-dateutil = "*"
 six = "*"
 mypy = "*"
 pydantic = {extras = ["email"], version = "*"}
+bump2version = "*"
 
 [dev-packages]
 black = "*"
