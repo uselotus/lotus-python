@@ -77,11 +77,11 @@ class Client(object):
                 "name": "create_customer",
                 "method": HTTPMethod.POST,
             },
-            "batch_create_customers": {
-                "url": "/api/batch_create_customers/",
-                "name": "batch_create_customers",
-                "method": HTTPMethod.POST,
-            },
+            # "batch_create_customers": {
+            #     "url": "/api/batch_create_customers/",
+            #     "name": "batch_create_customers",
+            #     "method": HTTPMethod.POST,
+            # },
             # credits
             "list_credits": {
                 "url": "/api/credits/",

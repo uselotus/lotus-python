@@ -1,0 +1,1 @@
+datamodel-codegen --url https://raw.githubusercontent.com/uselotus/lotus/main/docs/openapi.yaml  --output ./lotus/models.py --strict-nullable

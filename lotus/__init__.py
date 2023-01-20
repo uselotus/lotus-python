@@ -29,8 +29,8 @@ def list_customers(*args, **kwargs):
 def create_customer(*args, **kwargs):
     return _proxy("create_customer", *args, **kwargs)
 
-def batch_create_customers(*args, **kwargs):
-    return _proxy("batch_create_customers", *args, **kwargs)
+# def batch_create_customers(*args, **kwargs):
+#     return _proxy("batch_create_customers", *args, **kwargs)
 
 def list_credits(*args, **kwargs):
     return _proxy("list_credits", *args, **kwargs)

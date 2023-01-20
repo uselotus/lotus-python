@@ -27,17 +27,28 @@ lotus.debug = True
 
 ## Currently Supported Methods
 ```
-1. TrackEvent
-2. Get All Customers
-3. Get Customer Details
-4. Create Customer
-5. Create Subscription
-6. Cancel Subscription
-7. Change Subscription
-8. Get All Subscriptions
-9. Get Subscription Details
-10. Get All Plans
-11. Get Customer Access
+1. Tracking:
+    - Track Event
+2. Customers
+    - List Customers
+    - Get Customer
+    - Create Customer
+3. Credits
+    - List Credits
+    - Create Credit
+    - Update Credit
+    - Void Credit
+4. Subscriptions
+    - List Subscriptions
+    - Create Subscription
+    - Cancel Subscription
+    - Update Subscription
+5. Access Management
+    - Get Feature Access
+    - Get Metric Access
+6. Plans
+    - List Plans
+    - Get Plan
 ```
 
 ## Making calls

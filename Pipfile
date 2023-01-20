@@ -22,8 +22,8 @@ coverage = "*"
 twine = "*"
 pytest-mock = "*"
 pipfile = "*"
-datamodel-code-generator = "*"
 python-dotenv = "*"
+datamodel-code-generator = {extras = ["http"], version = "*"}
 
 [requires]
 python_version = "3.10"

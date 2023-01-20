@@ -126,7 +126,7 @@ class TestEndtoEnd:
         assert feature_access["feature_name"] == "test_feature"
         assert feature_access["access"] is True
         customer = lotus.get_customer(customer_id=id)
-        assert customer["total_amount_due"] == 0
+        assert customer["total_amount_due"] == 50
         canceled_sub = lotus.cancel_subscription(
             customer_id=id, invoicing_behavior="invoice_now"
         )

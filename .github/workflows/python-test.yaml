@@ -1,7 +1,7 @@
-name: Python SDK Publish CI
+name: Python SDK Test
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -36,14 +36,3 @@ jobs:
       - name: Test Pytest
         run: |
           pipenv run pytest
-
-      - name: Publish to PyPI
-        if: success()
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          pipenv run pip install --upgrade setuptools wheel
-          pipenv run python setup.py sdist bdist_wheel
-          pipenv run pip install twine
-          pipenv run twine upload dist/*
