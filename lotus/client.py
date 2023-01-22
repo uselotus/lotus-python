@@ -14,8 +14,10 @@ from .consumer import Consumer
 from .models import (
     Customer,
     CustomerBalanceAdjustment,
+    FeatureAccessResponse,
     GetEventAccess,
     GetFeatureAccess,
+    MetricAccessResponse,
     Plan,
     SubscriptionRecord,
 )
@@ -50,6 +52,7 @@ class Client(object):
         gzip=False,
         max_retries=3,
         sync_mode=False,
+        strict=False,
         timeout=15,
         thread=1,
     ):
@@ -135,6 +138,16 @@ class Client(object):
                 "name": "get_customer_feature_access",
                 "method": HTTPMethod.GET,
             },
+            "check_metric_access": {
+                "url": "/api/metric_access/",
+                "name": "check_metric_access",
+                "method": HTTPMethod.GET,
+            },
+            "check_feature_access": {
+                "url": "/api/feature_access/",
+                "name": "check_feature_access",
+                "method": HTTPMethod.GET,
+            },
             # plans
             "list_plans": {
                 "url": "/api/plans/",
@@ -157,6 +170,7 @@ class Client(object):
         self.host = host
         self.gzip = gzip
         self.timeout = timeout
+        self.strict = strict
 
         if debug:
             self.log.setLevel(logging.DEBUG)
@@ -236,9 +250,11 @@ class Client(object):
         }
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(list[Customer], ret)
-        return [x.dict() for x in obj]
-
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[Customer], ret)]
+        else:
+            return [Customer.construct(**x).dict() for x in ret]
+    
     def get_customer(
         self,
         *,
@@ -252,8 +268,10 @@ class Client(object):
         }
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(Customer, ret)
-        return obj.dict()
+        if self.strict:
+            return parse_obj_as(Customer, ret).dict()
+        else:
+            return Customer.construct(**ret).dict()
 
     def create_customer(
         self,
@@ -289,9 +307,11 @@ class Client(object):
             body["payment_provider_id"] = payment_provider_id
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(Customer, ret)
-        return obj.dict()
-    
+        if self.strict:
+            return parse_obj_as(Customer, ret).dict()
+        else:
+            return Customer.construct(**ret).dict()
+
     def list_credits(
         self,
         customer_id=None,
@@ -342,9 +362,11 @@ class Client(object):
             body["status"] = status
 
         ret = self._enqueue(body, block=True, query=query)
-        obj = parse_obj_as(list[CustomerBalanceAdjustment], ret)
-        return [x.dict() for x in obj]
-    
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[CustomerBalanceAdjustment], ret)]
+        else:
+            return [CustomerBalanceAdjustment.construct(**x).dict() for x in ret]
+
     def create_credit(
         self,
         customer_id=None, #required
@@ -384,8 +406,10 @@ class Client(object):
             body["amount_paid_currency_code"] = amount_paid_currency_code
         
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(CustomerBalanceAdjustment, ret)
-        return obj.dict()
+        if self.strict:
+            return parse_obj_as(CustomerBalanceAdjustment, ret).dict()
+        else:
+            return CustomerBalanceAdjustment.construct(**ret).dict()
     
     def update_credit(
         self,
@@ -407,8 +431,10 @@ class Client(object):
             body["expires_at"] = expires_at
         
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(CustomerBalanceAdjustment, ret)
-        return obj.dict()
+        if self.strict:
+            return parse_obj_as(CustomerBalanceAdjustment, ret).dict()
+        else:
+            return CustomerBalanceAdjustment.construct(**ret).dict()
     
     def void_credit(
         self,
@@ -422,9 +448,10 @@ class Client(object):
         }
         
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(CustomerBalanceAdjustment, ret)
-        return obj.dict()
-
+        if self.strict:
+            return parse_obj_as(CustomerBalanceAdjustment, ret).dict()
+        else:
+            return CustomerBalanceAdjustment.construct(**ret).dict()
 
     def batch_create_customers(
         self,
@@ -485,8 +512,10 @@ class Client(object):
             body["subscription_filters"] = subscription_filters
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(SubscriptionRecord, ret)
-        return obj.dict()
+        if self.strict:
+            return parse_obj_as(SubscriptionRecord, ret).dict()
+        else:
+            return SubscriptionRecord.construct(**ret).dict()
 
     def cancel_subscription(
         self,
@@ -542,8 +571,10 @@ class Client(object):
             body["invoicing_behavior"] = invoicing_behavior
 
         ret = self._enqueue(body, query=query, block=True)
-        obj = parse_obj_as(list[SubscriptionRecord], ret)
-        return [x.dict() for x in obj]
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[SubscriptionRecord], ret)]
+        else:
+            return [SubscriptionRecord.construct(**x) for x in ret]
 
     def list_subscriptions(
         self,
@@ -586,8 +617,10 @@ class Client(object):
             query["range_start"] = range_start
 
         ret = self._enqueue(body, query=query, block=True)
-        obj = parse_obj_as(list[SubscriptionRecord], ret)
-        return [x.dict() for x in obj]
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[SubscriptionRecord], ret)]
+        else:
+            return [SubscriptionRecord.construct(**x).dict() for x in ret]
 
     def update_subscription(
         self,
@@ -648,8 +681,10 @@ class Client(object):
             body["usage_behavior"] = usage_behavior
 
         ret = self._enqueue(body, query=query, block=True)
-        obj = parse_obj_as(list[SubscriptionRecord], ret)
-        return [x.dict() for x in obj]
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[SubscriptionRecord], ret)]
+        else:
+            return [SubscriptionRecord.construct(**x).dict() for x in ret]
 
     def list_plans(
         self,
@@ -660,8 +695,10 @@ class Client(object):
         }
 
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(list[Plan], ret)
-        return [x.dict() for x in obj]
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[Plan], ret)]
+        else:
+            return [Plan.construct(**x).dict() for x in ret]
 
     def get_plan(
         self,
@@ -675,8 +712,10 @@ class Client(object):
             "$append_to_url": plan_id,
         }
         ret = self._enqueue(body, block=True)
-        obj = parse_obj_as(Plan, ret)
-        return obj.dict()
+        if self.strict:
+            return parse_obj_as(Plan, ret).dict()
+        else:
+            return Plan.construct(**ret).dict()
 
     def get_customer_metric_access(
         self,
@@ -707,8 +746,37 @@ class Client(object):
         }
 
         ret = self._enqueue(body, query=query, block=True)
-        obj = parse_obj_as(list[GetEventAccess], ret)
-        return [x.dict() for x in obj]
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[GetEventAccess], ret)]
+        else:
+            return [GetEventAccess.construct(**x).dict() for x in ret]
+    
+    def check_metric_access(
+        self,
+        customer_id=None,
+        metric_id=None,
+        subscription_filters=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+        require("metric_id", metric_id, ID_TYPES)
+        for filter in subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+
+        body = {
+            "$type": "check_metric_access",
+        }
+        query = {
+            "customer_id": customer_id,
+            "metric_id": metric_id,
+            "subscription_filters": subscription_filters,
+        }
+
+        ret = self._enqueue(body, query=query, block=True)
+        if self.strict:
+            return parse_obj_as(MetricAccessResponse, ret).dict()
+        else:
+            return MetricAccessResponse.construct(**ret).dict()
 
     def get_customer_feature_access(
         self,
@@ -728,8 +796,37 @@ class Client(object):
         }
 
         ret = self._enqueue(body, query=query, block=True)
-        obj = parse_obj_as(list[GetFeatureAccess], ret)
-        return [x.dict() for x in obj]
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[GetFeatureAccess], ret)]
+        else:
+            return [GetFeatureAccess.construct(**x).dict() for x in ret]
+    
+    def check_feature_access(
+        self,
+        customer_id=None,
+        feature_id=None,
+        subscription_filters=None,
+    ):
+        require("customer_id", customer_id, ID_TYPES)
+        require("feature_id", feature_id, ID_TYPES)
+        for filter in subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+
+        body = {
+            "$type": "check_feature_access",
+        }
+        query = {
+            "customer_id": customer_id,
+            "feature_id": feature_id,
+            "subscription_filters": subscription_filters,
+        }
+
+        ret = self._enqueue(body, query=query, block=True)
+        if self.strict:
+            return parse_obj_as(FeatureAccessResponse, ret).dict()
+        else:
+            return FeatureAccessResponse.construct(**ret).dict()
 
     def _enqueue(self, body, query=None, block=False):
         """Push a new `body` onto the queue, return `(success, body)`"""
@@ -828,6 +925,4 @@ def stringify_id(val):
         return None
     if isinstance(val, string_types):
         return val
-    return str(val)
-    return str(val)
     return str(val)

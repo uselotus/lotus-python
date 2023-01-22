@@ -7,13 +7,15 @@ from dotenv import load_dotenv
 
 import lotus
 
-load_dotenv()  # take environment variables from .env.
-
-API_KEY = os.environ.get("LOTUS_API_KEY")
-lotus.api_key = API_KEY
 
 class TestEndtoEnd:
     def test_e2e(self):
+        load_dotenv()  # take environment variables from .env.
+        API_KEY = os.environ.get("LOTUS_API_KEY")
+        lotus.api_key = API_KEY
+        lotus.strict=True
+
+        
         plan_id = "plan_aead7e8eb07249c2b2610e936d24a356"
         id = uuid.uuid4().hex
         response = lotus.create_customer(
@@ -100,29 +102,26 @@ class TestEndtoEnd:
         )
         assert len(sub) == 1
         assert sub[0]["auto_renew"] is False
-        access = lotus.get_customer_metric_access(
+        access = lotus.check_metric_access(
             customer_id=id,
-            event_name="test_event",
+            metric_id="metric_a25d887196464a1389fd65194f9e1d7f",
             subscription_filters=[{"property_name": "region", "value": "US"}],
         )
-        assert len(access) == 1
-        access = access[0]
-        assert access["usage_per_component"][0]["event_name"] == "test_event"
-        assert access["usage_per_component"][0]["metric_usage"] >= 0
-        assert access["usage_per_component"][0]["metric_total_limit"] is None
-        access = lotus.get_customer_metric_access(
+
+        assert access["metric"]["event_name"] == "test_event"
+        assert access["access_per_subscription"][0]["metric_usage"] >= 0
+        assert access["access_per_subscription"][0]["metric_total_limit"] is None
+        access = lotus.check_metric_access( #bogus metric id
             customer_id=id,
-            event_name="bogus_event",
+            metric_id="metric_5da8be769cdf4e3fa8233a22fb920733",
             subscription_filters=[{"property_name": "region", "value": "US"}],
         )
-        assert len(access) == 1
-        assert len(access[0]["usage_per_component"]) == 0
-        feature_access = lotus.get_customer_feature_access(
-            customer_id=id, feature_name="test_feature"
+        assert access["access_per_subscription"][0]["metric_usage"] == 0
+        assert access["access_per_subscription"][0]["metric_total_limit"] == 0
+        feature_access = lotus.check_feature_access(
+            customer_id=id, feature_id="feature_6b037a7bbce44ee98a65a04e97e2f5dd"
         )
-        assert len(feature_access) == 1
-        feature_access = feature_access[0]
-        assert feature_access["feature_name"] == "test_feature"
+        assert feature_access["feature"]["feature_name"] == "test_feature"
         assert feature_access["access"] is True
         customer = lotus.get_customer(customer_id=id)
         assert customer["total_amount_due"] == 50
@@ -135,4 +134,5 @@ class TestEndtoEnd:
         assert canceled_sub["end_date"] <= now
         assert canceled_sub["fully_billed"] is True
         plans = lotus.list_plans()
+        assert len(plans) > 0
         assert len(plans) > 0
