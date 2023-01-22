@@ -10,6 +10,7 @@ on_error = None
 debug = False
 send = True
 sync_mode = False
+strict = False
 
 default_client = None
 
@@ -62,10 +63,14 @@ def list_subscriptions(*args, **kwargs):
 def get_customer_metric_access(*args, **kwargs):
     return _proxy("get_customer_metric_access", *args, **kwargs)
 
+def check_metric_access(*args, **kwargs):
+    return _proxy("check_metric_access", *args, **kwargs)
 
 def get_customer_feature_access(*args, **kwargs):
     return _proxy("get_customer_feature_access", *args, **kwargs)
 
+def check_feature_access(*args, **kwargs):
+    return _proxy("check_feature_access", *args, **kwargs)
 
 def list_plans(*args, **kwargs):
     return _proxy("list_plans", *args, **kwargs)
@@ -102,6 +107,7 @@ def _proxy(method, *args, **kwargs):
             on_error=on_error,
             send=send,
             sync_mode=sync_mode,
+            strict=strict,
         )
 
     fn = getattr(default_client, method)
