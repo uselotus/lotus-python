@@ -12,6 +12,7 @@ from six import string_types
 
 from .consumer import Consumer
 from .models import (
+    AddOnSubscriptionRecord,
     Customer,
     CustomerBalanceAdjustment,
     FeatureAccessResponse,
@@ -58,6 +59,12 @@ class Client(object):
     ):
         require("api_key", api_key, string_types)
         self.operations = {
+            # ping
+            "ping": {
+                "url": "/api/ping/",
+                "name": "ping",
+                "method": HTTPMethod.GET,
+            },
             # track event
             "track_event": {
                 "url": "/api/track/",
@@ -126,6 +133,22 @@ class Client(object):
                 "url": "/api/subscriptions/",
                 "name": "list_subscriptions",
                 "method": HTTPMethod.GET,
+            },
+            # addons - attach, cancel, update
+            "attach_addon": {
+                "url": "/api/subscriptions/addons/add/",
+                "name": "attach_addon",
+                "method": HTTPMethod.POST,
+            },
+            "cancel_addon": {
+                "url": "/api/subscriptions/addons/cancel/",
+                "name": "cancel_addon",
+                "method": HTTPMethod.POST,
+            },
+            "update_addon": {
+                "url": "/api/subscriptions/addons/update/",
+                "name": "update_addon",
+                "method": HTTPMethod.POST,
             },
             # get access
             "get_customer_metric_access": {
@@ -254,7 +277,7 @@ class Client(object):
             return [x.dict() for x in parse_obj_as(list[Customer], ret)]
         else:
             return [Customer.construct(**x).dict() for x in ret]
-    
+
     def get_customer(
         self,
         *,
@@ -363,15 +386,17 @@ class Client(object):
 
         ret = self._enqueue(body, block=True, query=query)
         if self.strict:
-            return [x.dict() for x in parse_obj_as(list[CustomerBalanceAdjustment], ret)]
+            return [
+                x.dict() for x in parse_obj_as(list[CustomerBalanceAdjustment], ret)
+            ]
         else:
             return [CustomerBalanceAdjustment.construct(**x).dict() for x in ret]
 
     def create_credit(
         self,
-        customer_id=None, #required
-        amount=None, #required
-        currency_code=None, #required
+        customer_id=None,  # required
+        amount=None,  # required
+        currency_code=None,  # required
         description=None,
         effective_at=None,
         expires_at=None,
@@ -402,15 +427,17 @@ class Client(object):
             require("amount_paid", amount_paid, (float, int, Decimal))
             body["amount_paid"] = amount_paid
         if amount_paid_currency_code:
-            require("amount_paid_currency_code", amount_paid_currency_code, string_types)
+            require(
+                "amount_paid_currency_code", amount_paid_currency_code, string_types
+            )
             body["amount_paid_currency_code"] = amount_paid_currency_code
-        
+
         ret = self._enqueue(body, block=True)
         if self.strict:
             return parse_obj_as(CustomerBalanceAdjustment, ret).dict()
         else:
             return CustomerBalanceAdjustment.construct(**ret).dict()
-    
+
     def update_credit(
         self,
         credit_id=None,
@@ -429,13 +456,13 @@ class Client(object):
         if expires_at:
             require("expires_at", expires_at, datetime)
             body["expires_at"] = expires_at
-        
+
         ret = self._enqueue(body, block=True)
         if self.strict:
             return parse_obj_as(CustomerBalanceAdjustment, ret).dict()
         else:
             return CustomerBalanceAdjustment.construct(**ret).dict()
-    
+
     def void_credit(
         self,
         credit_id=None,
@@ -446,7 +473,7 @@ class Client(object):
             "$type": "void_credit",
             "$append_to_url": credit_id,
         }
-        
+
         ret = self._enqueue(body, block=True)
         if self.strict:
             return parse_obj_as(CustomerBalanceAdjustment, ret).dict()
@@ -491,7 +518,6 @@ class Client(object):
         require("plan_id", plan_id, ID_TYPES)
         require("start_date", start_date, ID_TYPES)
 
-        
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -531,7 +557,7 @@ class Client(object):
             require("plan_id", plan_id, ID_TYPES)
         if customer_id:
             require("customer_id", customer_id, ID_TYPES)
-        
+
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -599,7 +625,6 @@ class Client(object):
                     "ended",
                     "not_started",
                 ], "Invalid status"
-                
 
         body = {
             "$type": "list_subscriptions",
@@ -637,7 +662,7 @@ class Client(object):
             require("plan_id", plan_id, ID_TYPES)
         if customer_id:
             require("customer_id", customer_id, ID_TYPES)
-        
+
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -686,6 +711,153 @@ class Client(object):
         else:
             return [SubscriptionRecord.construct(**x).dict() for x in ret]
 
+    def attach_addon(
+        self,
+        attach_to_customer_id=None,
+        attach_to_plan_id=None,
+        attach_to_subscription_filters=None,
+        addon_id=None,
+        quantity=None,
+    ):
+        require("attach_to_customer_id", attach_to_customer_id, ID_TYPES)
+        require("attach_to_plan_id", attach_to_plan_id, ID_TYPES)
+        require("addon_id", addon_id, ID_TYPES)
+        if quantity:
+            require("quantity", quantity, int)
+        else:
+            quantity = 1
+        for filter in attach_to_subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+
+        body = {
+            "$type": "attach_addon",
+            "attach_to_customer_id": attach_to_customer_id,
+            "attach_to_plan_id": attach_to_plan_id,
+            "addon_id": addon_id,
+            "quantity": quantity,
+        }
+        if attach_to_subscription_filters:
+            body["attach_to_subscription_filters"] = attach_to_subscription_filters
+
+        ret = self._enqueue(body, block=True)
+        if self.strict:
+            return parse_obj_as(AddOnSubscriptionRecord, ret).dict()
+        else:
+            return AddOnSubscriptionRecord.construct(**ret).dict()
+
+    def cancel_addon(
+        self,
+        attached_customer_id=None,
+        attached_plan_id=None,
+        attached_subscription_filters=None,
+        addon_id=None,
+        flat_fee_behavior=None,
+        usage_behavior=None,
+        invoicing_behavior=None,
+    ):
+        require("attached_customer_id", attached_customer_id, ID_TYPES)
+        require("attached_plan_id", attached_plan_id, ID_TYPES)
+        require("addon_id", addon_id, ID_TYPES)
+        for filter in attached_subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+        if flat_fee_behavior is not None:
+            assert flat_fee_behavior in [
+                "refund",
+                "charge_prorated",
+                "charge_full",
+            ], "flat_fee_behavior must be one of 'refund', 'charge_prorated', or 'charge_full'"
+        if usage_behavior is not None:
+            assert usage_behavior in [
+                "bill_full",
+                "bill_none",
+            ], "usage_behavior must be one of 'bill_full' or 'bill_none'"
+        if invoicing_behavior is not None:
+            assert invoicing_behavior in [
+                "add_to_next_invoice",
+                "invoice_now",
+            ], "invoicing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
+
+        query = {
+            "attached_customer_id": attached_customer_id,
+            "attached_plan_id": attached_plan_id,
+            "addon_id": addon_id,
+        }
+        if attached_subscription_filters:
+            query["attached_subscription_filters"] = attached_subscription_filters
+
+        body = {
+            "$type": "cancel_addon",
+        }
+        if flat_fee_behavior:
+            body["flat_fee_behavior"] = flat_fee_behavior
+        if usage_behavior:
+            body["usage_behavior"] = usage_behavior
+        if invoicing_behavior:
+            body["invoicing_behavior"] = invoicing_behavior
+
+        ret = self._enqueue(body, query=query, block=True)
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[AddOnSubscriptionRecord], ret)]
+        else:
+            return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
+
+    def update_addon(
+        self,
+        attached_customer_id=None,
+        attached_plan_id=None,
+        attached_subscription_filters=None,
+        addon_id=None,
+        turn_off_auto_renew=None,
+        end_date=None,
+        quantity=None,
+        invoicing_behavior=None,
+    ):
+        require("attached_customer_id", attached_customer_id, ID_TYPES)
+        require("attached_plan_id", attached_plan_id, ID_TYPES)
+        require("addon_id", addon_id, ID_TYPES)
+        for filter in attached_subscription_filters or []:
+            require("property_name", filter["property_name"], ID_TYPES)
+            require("value", filter["value"], ID_TYPES)
+        if turn_off_auto_renew is not None:
+            require("turn_off_auto_renew", turn_off_auto_renew, bool)
+        if end_date is not None:
+            require("end_date", end_date, datetime)
+        if quantity is not None:
+            require("quantity", quantity, int)
+        if invoicing_behavior is not None:
+            assert invoicing_behavior in [
+                "add_to_next_invoice",
+                "invoice_now",
+            ], "invoicing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
+
+        query = {
+            "attached_customer_id": attached_customer_id,
+            "attached_plan_id": attached_plan_id,
+            "addon_id": addon_id,
+        }
+        if attached_subscription_filters:
+            query["attached_subscription_filters"] = attached_subscription_filters
+
+        body = {
+            "$type": "cancel_addon",
+        }
+        if turn_off_auto_renew is not None:
+            body["turn_off_auto_renew"] = turn_off_auto_renew
+        if end_date is not None:
+            body["end_date"] = end_date
+        if quantity is not None:
+            body["quantity"] = quantity
+        if invoicing_behavior:
+            body["invoicing_behavior"] = invoicing_behavior
+
+        ret = self._enqueue(body, query=query, block=True)
+        if self.strict:
+            return [x.dict() for x in parse_obj_as(list[AddOnSubscriptionRecord], ret)]
+        else:
+            return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
+
     def list_plans(
         self,
     ):
@@ -730,7 +902,6 @@ class Client(object):
         if event_name and metric_id:
             raise ValueError("Must provide event_name or metric_id, not both")
 
-        
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
             require("value", filter["value"], ID_TYPES)
@@ -750,7 +921,7 @@ class Client(object):
             return [x.dict() for x in parse_obj_as(list[GetEventAccess], ret)]
         else:
             return [GetEventAccess.construct(**x).dict() for x in ret]
-    
+
     def check_metric_access(
         self,
         customer_id=None,
@@ -800,7 +971,7 @@ class Client(object):
             return [x.dict() for x in parse_obj_as(list[GetFeatureAccess], ret)]
         else:
             return [GetFeatureAccess.construct(**x).dict() for x in ret]
-    
+
     def check_feature_access(
         self,
         customer_id=None,
