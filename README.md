@@ -49,6 +49,10 @@ lotus.debug = True
 6. Plans
     - List Plans
     - Get Plan
+7. Add-ons
+    - Attach Add-on
+    - Update Add-on
+    - Cancel Add-on 
 ```
 
 ## Making calls
