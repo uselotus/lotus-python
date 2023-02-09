@@ -12,14 +12,17 @@ class TestEndtoEnd:
     def test_e2e(self):
         load_dotenv()  # take environment variables from .env.
         API_KEY = os.environ.get("LOTUS_API_KEY")
+        host = os.environ.get("LOTUS_HOST", "https://api.uselotus.io")
         lotus.api_key = API_KEY
         lotus.strict = True
+        lotus.host = host
+
         now = datetime.datetime.now(datetime.timezone.utc)
         now_minus_day = now - relativedelta.relativedelta(days=1)
         id = uuid.uuid4().hex
 
-        plan_id = "plan_aead7e8eb07249c2b2610e936d24a356"
-        addon_id = "addon_4f236c4f262443179a0d99f15405e7de"
+        plan_id = os.environ.get("PLAN_ID", "plan_aead7e8eb07249c2b2610e936d24a356")
+        addon_id = os.environ.get("ADDON_ID", "addon_4f236c4f262443179a0d99f15405e7de")
         ## CREATE CUSTOMER
         response = lotus.create_customer(
             customer_id=id,
