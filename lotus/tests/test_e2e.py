@@ -12,10 +12,11 @@ class TestEndtoEnd:
     def test_e2e(self):
         load_dotenv()  # take environment variables from .env.
         API_KEY = os.environ.get("LOTUS_API_KEY")
+        host = os.environ.get("LOTUS_HOST", "https://api.uselotus.io")
         lotus.api_key = API_KEY
-        lotus.strict=True
+        lotus.strict = True
+        lotus.host = host
 
-        
         plan_id = "plan_aead7e8eb07249c2b2610e936d24a356"
         id = uuid.uuid4().hex
         response = lotus.create_customer(
@@ -34,7 +35,7 @@ class TestEndtoEnd:
             customer_id=id,
             amount=100,
             currency_code="USD",
-            expires_at=now+relativedelta.relativedelta(days=7),
+            expires_at=now + relativedelta.relativedelta(days=7),
             description="Test Credit",
         )
         credits = lotus.list_credits(
@@ -111,7 +112,7 @@ class TestEndtoEnd:
         assert access["metric"]["event_name"] == "test_event"
         assert access["access_per_subscription"][0]["metric_usage"] >= 0
         assert access["access_per_subscription"][0]["metric_total_limit"] is None
-        access = lotus.check_metric_access( #bogus metric id
+        access = lotus.check_metric_access(  # bogus metric id
             customer_id=id,
             metric_id="metric_5da8be769cdf4e3fa8233a22fb920733",
             subscription_filters=[{"property_name": "region", "value": "US"}],
