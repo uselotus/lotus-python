@@ -23,7 +23,7 @@ install_requires = [
     "pydantic[email]>=1.10.0",
 ]
 
-tests_require = ["mock>=2.0.0"]
+tests_require = ["mock>=2.0.0", "python-dotenv>=0.21.0"]
 
 setup(
     name="lotus-python",

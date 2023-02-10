@@ -23,6 +23,15 @@ class TestEndtoEnd:
 
         plan_id = os.environ.get("PLAN_ID", "plan_aead7e8eb07249c2b2610e936d24a356")
         addon_id = os.environ.get("ADDON_ID", "addon_4f236c4f262443179a0d99f15405e7de")
+        metric_id = os.environ.get(
+            "METRIC_ID", "metric_a25d887196464a1389fd65194f9e1d7f"
+        )
+        unused_metric_id = os.environ.get(
+            "UNUSED_METRIC_ID", "metric_5da8be769cdf4e3fa8233a22fb920733"
+        )
+        feature_id = os.environ.get(
+            "FEATURE_ID", "feature_6b037a7bbce44ee98a65a04e97e2f5dd"
+        )
         ## CREATE CUSTOMER
         response = lotus.create_customer(
             customer_id=id,
@@ -148,7 +157,7 @@ class TestEndtoEnd:
         ## METRIC ACCESS
         access = lotus.check_metric_access(
             customer_id=id,
-            metric_id="metric_a25d887196464a1389fd65194f9e1d7f",
+            metric_id=metric_id,
             subscription_filters=[{"property_name": "region", "value": "US"}],
         )
         assert access["metric"]["event_name"] == "test_event"
@@ -156,7 +165,7 @@ class TestEndtoEnd:
         assert access["access_per_subscription"][0]["metric_total_limit"] is None
         access = lotus.check_metric_access(  # bogus metric id
             customer_id=id,
-            metric_id="metric_5da8be769cdf4e3fa8233a22fb920733",
+            metric_id=unused_metric_id,
             subscription_filters=[{"property_name": "region", "value": "US"}],
         )
         assert access["access_per_subscription"][0]["metric_usage"] == 0
@@ -164,7 +173,7 @@ class TestEndtoEnd:
 
         ## FEATURE ACCESS
         feature_access = lotus.check_feature_access(
-            customer_id=id, feature_id="feature_6b037a7bbce44ee98a65a04e97e2f5dd"
+            customer_id=id, feature_id=feature_id
         )
         assert feature_access["feature"]["feature_name"] == "test_feature"
         assert feature_access["access"] is True
