@@ -1,6 +1,8 @@
 import os
 import sys
 
+from lotus.version import VERSION
+
 try:
     from setuptools import setup
 except ImportError:
@@ -8,7 +10,7 @@ except ImportError:
 
 # Don't import analytics-python module here, since deps may not be installed
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lotus"))
-from lotus.version import VERSION
+
 
 long_description = """
 Lotus is the quickest way to track usage and optimize pricing for your SaaS business. lotus-python is the python package.
@@ -54,5 +56,7 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+    ],
+)
     ],
 )
