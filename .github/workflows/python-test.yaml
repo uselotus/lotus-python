@@ -33,10 +33,10 @@ jobs:
           key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
 
       - name: Install dependencies
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        if: steps.cache-pipenv.outputs.cazche-hit != 'true'
         run: |
           pipenv install --deploy --dev
-          
+
       - name: Test Pytest
         run: |
           pipenv run pytest
