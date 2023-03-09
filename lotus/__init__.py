@@ -107,6 +107,10 @@ def get_plan(*args, **kwargs):
     return _proxy("get_plan", *args, **kwargs)
 
 
+def switch_subscription_plan(*args, **kwargs):
+    return _proxy("switch_subscription_plan", *args, **kwargs)
+
+
 def flush():
     """Tell the client to flush."""
     _proxy("flush")

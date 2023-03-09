@@ -6,9 +6,8 @@ from io import BytesIO
 
 from dateutil.tz import tzutc
 from requests import sessions
-from requests.auth import HTTPBasicAuth
 
-from .utils import HTTPMethod, remove_trailing_slash
+from .utils import HTTPMethod
 from .version import VERSION
 
 _session = sessions.Session()
@@ -72,6 +71,7 @@ def send(
         log.debug("received response: %s", payload)
         raise APIError(res.status_code, payload)
     except ValueError:
+        print(res.__dict__)
         raise APIError(res.status_code, res.text)
 
 
