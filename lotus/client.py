@@ -519,6 +519,7 @@ class Client(object):
         is_new=None,
         subscription_filters=None,
         version_id=None,
+        metadata=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
         if plan_id:
@@ -528,6 +529,11 @@ class Client(object):
             require("version_id", version_id, ID_TYPES)
             assert plan_id is None, "Cannot specify both plan_id and version_id"
         require("start_date", start_date, ID_TYPES)
+        if metadata:
+            require("metadata", metadata, dict)
+            for key, value in metadata.items():
+                require("metadata key", key, (string_types, numbers.Number))
+                require("metadata value", value, (string_types, numbers.Number))
 
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
@@ -552,6 +558,8 @@ class Client(object):
             body["is_new"] = is_new
         if subscription_filters:
             body["subscription_filters"] = subscription_filters
+        if metadata:
+            body["metadata"] = metadata
 
         ret = self._enqueue(body, block=True)
         if self.strict:
@@ -700,15 +708,22 @@ class Client(object):
 
     def update_subscription(
         self,
+        *,
         turn_off_auto_renew=None,
         end_date=None,
         subscription_id=None,
+        metadata=None,
     ):
         require("subscription_id", subscription_id, ID_TYPES)
         if turn_off_auto_renew is not None:
             require("turn_off_auto_renew", turn_off_auto_renew, bool)
         if end_date:
             require("end_date", end_date, str)
+        if metadata:
+            require("metadata", metadata, dict)
+            for key, value in metadata.items():
+                require("metadata key", key, (string_types, numbers.Number))
+                require("metadata value", value, (string_types, numbers.Number))
 
         body = {
             "$type": "update_subscription",
@@ -731,10 +746,12 @@ class Client(object):
 
     def attach_addon(
         self,
+        *,
         subscription_id=None,
         addon_id=None,
         addon_version_id=None,
         quantity=None,
+        metadata=None,
     ):
         if addon_id:
             require("addon_id", addon_id, ID_TYPES)
@@ -751,11 +768,18 @@ class Client(object):
             require("quantity", quantity, int)
         else:
             quantity = 1
+        if metadata:
+            require("metadata", metadata, dict)
+            for key, value in metadata.items():
+                require("metadata key", key, (string_types, numbers.Number))
+                require("metadata value", value, (string_types, numbers.Number))
 
         body = {
             "$type": "attach_addon",
             "quantity": quantity,
         }
+        if metadata:
+            body["metadata"] = metadata
         if addon_id:
             body["addon_id"] = addon_id
         elif addon_version_id:
@@ -834,68 +858,72 @@ class Client(object):
         else:
             return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
 
-    # def update_addon(
-    #     self,
-    #     attached_customer_id=None,
-    #     attached_plan_id=None,
-    #     attached_subscription_filters=None,
-    #     addon_id=None,
-    #     turn_off_auto_renew=None,
-    #     end_date=None,
-    #     quantity=None,
-    #     invoicing_behavior=None,
-    # ):
-    #     require("attached_customer_id", attached_customer_id, ID_TYPES)
-    #     require("attached_plan_id", attached_plan_id, ID_TYPES)
-    #     require("addon_id", addon_id, ID_TYPES)
-    #     for filter in attached_subscription_filters or []:
-    #         require("property_name", filter["property_name"], ID_TYPES)
-    #         require("value", filter["value"], ID_TYPES)
-    #     if turn_off_auto_renew is not None:
-    #         require("turn_off_auto_renew", turn_off_auto_renew, bool)
-    #     if end_date is not None:
-    #         require("end_date", end_date, datetime)
-    #     if quantity is not None:
-    #         require("quantity", quantity, int)
-    #     if invoicing_behavior is not None:
-    #         assert invoicing_behavior in [
-    #             "add_to_next_invoice",
-    #             "invoice_now",
-    #         ], "invoicing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
-
-    #     query = {
-    #         "attached_customer_id": attached_customer_id,
-    #         "attached_plan_id": attached_plan_id,
-    #         "addon_id": addon_id,
-    #     }
-    #     if attached_subscription_filters:
-    #         query["attached_subscription_filters"] = attached_subscription_filters
-
-    #     body = {
-    #         "$type": "cancel_addon",
-    #     }
-    #     if turn_off_auto_renew is not None:
-    #         body["turn_off_auto_renew"] = turn_off_auto_renew
-    #     if end_date is not None:
-    #         body["end_date"] = end_date
-    #     if quantity is not None:
-    #         body["quantity"] = quantity
-    #     if invoicing_behavior:
-    #         body["invoicing_behavior"] = invoicing_behavior
-
-    #     ret = self._enqueue(body, query=query, block=True)
-    #     if self.strict:
-    #         return [x.dict() for x in parse_obj_as(list[AddOnSubscriptionRecord], ret)]
-    #     else:
-    #         return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
-
     def list_plans(
         self,
+        *,
+        duration=None,
+        exclude_tags=None,
+        include_tags=None,
+        include_tags_all=None,
+        version_currency_code=None,
+        version_custom_type=None,
+        version_status=None,
     ):
+        if duration is not None:
+            assert duration in [
+                "monthly",
+                "quarterly",
+                "yearly",
+            ], "duration must be one of 'monthly', 'quarterly', or 'yearly'"
+        if exclude_tags is not None:
+            require("exclude_tags", exclude_tags, list)
+            for tag in exclude_tags:
+                require("tag", tag, str)
+        if include_tags is not None:
+            require("include_tags", include_tags, list)
+            for tag in include_tags:
+                require("tag", tag, str)
+        if include_tags_all is not None:
+            require("include_tags_all", include_tags_all, list)
+            for tag in include_tags_all:
+                require("tag", tag, str)
+        if version_currency_code is not None:
+            require("version_currency_code", version_currency_code, ID_TYPES)
+        if version_custom_type is not None:
+            assert version_custom_type in [
+                "custom_only",
+                "public_only",
+                "all",
+            ], "version_custom_type must be one of 'custom_only', 'public_only', or 'all'"
+        if version_status is not None:
+            require("version_status", version_status, list)
+            version_status = list(set(version_status))
+            for status in version_status:
+                assert status in [
+                    "active",
+                    "ended",
+                    "not_started",
+                ], "version_status must be one of 'active' or 'ended' or 'not_started'"
 
         body = {
             "$type": "list_plans",
         }
+
+        query = {}
+        if duration is not None:
+            query["duration"] = duration
+        if exclude_tags is not None:
+            query["exclude_tags"] = exclude_tags
+        if include_tags is not None:
+            query["include_tags"] = include_tags
+        if include_tags_all is not None:
+            query["include_tags_all"] = include_tags_all
+        if version_currency_code is not None:
+            query["version_currency_code"] = version_currency_code
+        if version_custom_type is not None:
+            query["version_custom_type"] = version_custom_type
+        if version_status is not None:
+            query["version_status"] = version_status
 
         ret = self._enqueue(body, block=True)
         if self.strict:
