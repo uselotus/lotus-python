@@ -12,7 +12,7 @@ class TestEndtoEnd:
     def test_e2e(self):
         load_dotenv()  # take environment variables from .env.
         API_KEY = os.environ.get(
-            "LOTUS_API_KEY", "7dJF7LDK.4NozaW772OasIgns00AwcbuR6xsmUApz"
+            "LOTUS_API_KEY",
         )
         host = os.environ.get("LOTUS_HOST", "https://api.uselotus.io")
         lotus.api_key = API_KEY
