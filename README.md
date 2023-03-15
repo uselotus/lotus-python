@@ -42,6 +42,7 @@ lotus.debug = True
     - List Subscriptions
     - Create Subscription
     - Cancel Subscription
+    - Switch a Subscription's plan
     - Update Subscription
 5. Access Management
     - Get Feature Access
@@ -51,7 +52,6 @@ lotus.debug = True
     - Get Plan
 7. Add-ons
     - Attach Add-on
-    - Update Add-on
     - Cancel Add-on 
 ```
 
