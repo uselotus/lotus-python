@@ -115,7 +115,7 @@ class Client(object):
             },
             # subscription
             "create_subscription": {
-                "url": "/api/subscriptions/add/",
+                "url": "/api/subscriptions/",
                 "name": "create_subscription",
                 "method": HTTPMethod.POST,
             },
@@ -127,6 +127,11 @@ class Client(object):
             "update_subscription": {
                 "url": "/api/subscriptions/update/",
                 "name": "update_subscription",
+                "method": HTTPMethod.POST,
+            },
+            "switch_subscription_plan": {
+                "url": "/api/subscriptions/switch_plan/",
+                "name": "switch_subscription_plan",
                 "method": HTTPMethod.POST,
             },
             "list_subscriptions": {
@@ -145,11 +150,11 @@ class Client(object):
                 "name": "cancel_addon",
                 "method": HTTPMethod.POST,
             },
-            "update_addon": {
-                "url": "/api/subscriptions/addons/update/",
-                "name": "update_addon",
-                "method": HTTPMethod.POST,
-            },
+            # "update_addon": {
+            #     "url": "/api/subscriptions/addons/update/",
+            #     "name": "update_addon",
+            #     "method": HTTPMethod.POST,
+            # },
             # get access
             "get_customer_metric_access": {
                 "url": "/api/customer_metric_access/",
@@ -513,10 +518,22 @@ class Client(object):
         auto_renew=None,
         is_new=None,
         subscription_filters=None,
+        version_id=None,
+        metadata=None,
     ):
         require("customer_id", customer_id, ID_TYPES)
-        require("plan_id", plan_id, ID_TYPES)
+        if plan_id:
+            require("plan_id", plan_id, ID_TYPES)
+            assert version_id is None, "Cannot specify both plan_id and version_id"
+        if version_id:
+            require("version_id", version_id, ID_TYPES)
+            assert plan_id is None, "Cannot specify both plan_id and version_id"
         require("start_date", start_date, ID_TYPES)
+        if metadata:
+            require("metadata", metadata, dict)
+            for key, value in metadata.items():
+                require("metadata key", key, (string_types, numbers.Number))
+                require("metadata value", value, (string_types, numbers.Number))
 
         for filter in subscription_filters or []:
             require("property_name", filter["property_name"], ID_TYPES)
@@ -525,9 +542,14 @@ class Client(object):
         body = {
             "$type": "create_subscription",
             "start_date": start_date,
-            "plan_id": plan_id,
             "customer_id": customer_id,
         }
+        if plan_id:
+            body["plan_id"] = plan_id
+        elif version_id:
+            body["version_id"] = version_id
+        else:
+            raise ValueError("Must provide either plan_id or version_id")
         if end_date:
             body["end_date"] = end_date
         if auto_renew:
@@ -536,6 +558,8 @@ class Client(object):
             body["is_new"] = is_new
         if subscription_filters:
             body["subscription_filters"] = subscription_filters
+        if metadata:
+            body["metadata"] = metadata
 
         ret = self._enqueue(body, block=True)
         if self.strict:
@@ -546,21 +570,12 @@ class Client(object):
     def cancel_subscription(
         self,
         *,
-        customer_id=None,
-        plan_id=None,
-        subscription_filters=None,
+        subscription_id=None,
         flat_fee_behavior=None,
         usage_behavior=None,
         invoicing_behavior=None,
     ):
-        if plan_id:
-            require("plan_id", plan_id, ID_TYPES)
-        if customer_id:
-            require("customer_id", customer_id, ID_TYPES)
-
-        for filter in subscription_filters or []:
-            require("property_name", filter["property_name"], ID_TYPES)
-            require("value", filter["value"], ID_TYPES)
+        require("subscription_id", subscription_id, ID_TYPES)
         if usage_behavior is not None:
             assert usage_behavior in [
                 "bill_full",
@@ -581,26 +596,26 @@ class Client(object):
         body = {
             "$type": "cancel_subscription",
         }
-
-        query = {}
-        if plan_id:
-            query["plan_id"] = plan_id
-        if customer_id:
-            query["customer_id"] = customer_id
-        if subscription_filters:
-            query["subscription_filters"] = subscription_filters
         if flat_fee_behavior:
             body["flat_fee_behavior"] = flat_fee_behavior
         if usage_behavior:
             body["usage_behavior"] = usage_behavior
         if invoicing_behavior:
             body["invoicing_behavior"] = invoicing_behavior
+        query = {}
 
-        ret = self._enqueue(body, query=query, block=True)
+        if subscription_id:
+            ret = self._enqueue(
+                body,
+                query=query,
+                block=True,
+                endpoint_url=f"/api/subscriptions/{subscription_id}/cancel/",
+            )
+
         if self.strict:
-            return [x.dict() for x in parse_obj_as(list[SubscriptionRecord], ret)]
+            return parse_obj_as(SubscriptionRecord, ret).dict()
         else:
-            return [SubscriptionRecord.construct(**x) for x in ret]
+            return SubscriptionRecord.construct(**ret)
 
     def list_subscriptions(
         self,
@@ -647,27 +662,19 @@ class Client(object):
         else:
             return [SubscriptionRecord.construct(**x).dict() for x in ret]
 
-    def update_subscription(
+    def switch_subscription_plan(
         self,
-        customer_id=None,
-        plan_id=None,
-        subscription_filters=None,
-        replace_plan_id=None,
+        subscription_id,
+        switch_plan_id=None,
         invoicing_behavior=None,
         usage_behavior=None,
-        turn_off_auto_renew=None,
-        end_date=None,
+        dynamic_fixed_charges_initial_units=None,
     ):
-        if plan_id:
-            require("plan_id", plan_id, ID_TYPES)
-        if customer_id:
-            require("customer_id", customer_id, ID_TYPES)
-
-        for filter in subscription_filters or []:
-            require("property_name", filter["property_name"], ID_TYPES)
-            require("value", filter["value"], ID_TYPES)
-        if replace_plan_id:
-            require("replace_plan_id", replace_plan_id, ID_TYPES)
+        require("subscription_id", subscription_id, ID_TYPES)
+        require("switch_plan_id", switch_plan_id, ID_TYPES)
+        for initial_units in dynamic_fixed_charges_initial_units or []:
+            require("property_name", initial_units["metric_id"], ID_TYPES)
+            require("value", initial_units["units"], numbers.Number)
         if invoicing_behavior is not None:
             assert invoicing_behavior in [
                 "transfer_to_new_subscription",
@@ -678,69 +685,111 @@ class Client(object):
                 "add_to_next_invoice",
                 "invoice_now",
             ], "usage_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
+
+        body = {
+            "$type": "switch_subscription_plan",
+        }
+        if switch_plan_id:
+            body["switch_plan_id"] = switch_plan_id
+        if invoicing_behavior:
+            body["invoicing_behavior"] = invoicing_behavior
+        if usage_behavior:
+            body["usage_behavior"] = usage_behavior
+
+        ret = self._enqueue(
+            body,
+            block=True,
+            endpoint_url=f"/api/subscriptions/{subscription_id}/switch_plan/",
+        )
+        if self.strict:
+            return parse_obj_as(SubscriptionRecord, ret).dict()
+        else:
+            return SubscriptionRecord.construct(**ret)
+
+    def update_subscription(
+        self,
+        *,
+        turn_off_auto_renew=None,
+        end_date=None,
+        subscription_id=None,
+        metadata=None,
+    ):
+        require("subscription_id", subscription_id, ID_TYPES)
         if turn_off_auto_renew is not None:
             require("turn_off_auto_renew", turn_off_auto_renew, bool)
         if end_date:
             require("end_date", end_date, str)
-
-        query = {}
-        if plan_id:
-            query["plan_id"] = plan_id
-        if customer_id:
-            query["customer_id"] = customer_id
-        if subscription_filters:
-            query["subscription_filters"] = subscription_filters
+        if metadata:
+            require("metadata", metadata, dict)
+            for key, value in metadata.items():
+                require("metadata key", key, (string_types, numbers.Number))
+                require("metadata value", value, (string_types, numbers.Number))
 
         body = {
             "$type": "update_subscription",
         }
-        if replace_plan_id:
-            body["replace_plan_id"] = replace_plan_id
-        if invoicing_behavior:
-            body["invoicing_behavior"] = invoicing_behavior
         if turn_off_auto_renew:
             body["turn_off_auto_renew"] = turn_off_auto_renew
         if end_date:
             body["end_date"] = end_date
-        if usage_behavior:
-            body["usage_behavior"] = usage_behavior
 
-        ret = self._enqueue(body, query=query, block=True)
+        ret = self._enqueue(
+            body,
+            block=True,
+            endpoint_url=f"/api/subscriptions/{subscription_id}/update/",
+        )
+
         if self.strict:
-            return [x.dict() for x in parse_obj_as(list[SubscriptionRecord], ret)]
+            return parse_obj_as(SubscriptionRecord, ret).dict()
         else:
-            return [SubscriptionRecord.construct(**x).dict() for x in ret]
+            return SubscriptionRecord.construct(**ret)
 
     def attach_addon(
         self,
-        attach_to_customer_id=None,
-        attach_to_plan_id=None,
-        attach_to_subscription_filters=None,
+        *,
+        subscription_id=None,
         addon_id=None,
+        addon_version_id=None,
         quantity=None,
+        metadata=None,
     ):
-        require("attach_to_customer_id", attach_to_customer_id, ID_TYPES)
-        require("attach_to_plan_id", attach_to_plan_id, ID_TYPES)
-        require("addon_id", addon_id, ID_TYPES)
+        if addon_id:
+            require("addon_id", addon_id, ID_TYPES)
+            assert (
+                addon_version_id is None
+            ), "addon_version_id must be None if addon_id is provided"
+        if addon_version_id:
+            require("addon_version_id", addon_version_id, ID_TYPES)
+            assert (
+                addon_id is None
+            ), "addon_id must be None if addon_version_id is provided"
+        require("subscription_id", subscription_id, ID_TYPES)
         if quantity:
             require("quantity", quantity, int)
         else:
             quantity = 1
-        for filter in attach_to_subscription_filters or []:
-            require("property_name", filter["property_name"], ID_TYPES)
-            require("value", filter["value"], ID_TYPES)
+        if metadata:
+            require("metadata", metadata, dict)
+            for key, value in metadata.items():
+                require("metadata key", key, (string_types, numbers.Number))
+                require("metadata value", value, (string_types, numbers.Number))
 
         body = {
             "$type": "attach_addon",
-            "attach_to_customer_id": attach_to_customer_id,
-            "attach_to_plan_id": attach_to_plan_id,
-            "addon_id": addon_id,
             "quantity": quantity,
         }
-        if attach_to_subscription_filters:
-            body["attach_to_subscription_filters"] = attach_to_subscription_filters
+        if metadata:
+            body["metadata"] = metadata
+        if addon_id:
+            body["addon_id"] = addon_id
+        elif addon_version_id:
+            body["addon_version_id"] = addon_version_id
+        else:
+            raise ValueError("Either addon_id or addon_version_id must be provided")
 
-        ret = self._enqueue(body, block=True)
+        endpoint_url = f"/api/subscriptions/{subscription_id}/addons/attach/"
+
+        ret = self._enqueue(body, block=True, endpoint_url=endpoint_url)
         if self.strict:
             return parse_obj_as(AddOnSubscriptionRecord, ret).dict()
         else:
@@ -748,20 +797,25 @@ class Client(object):
 
     def cancel_addon(
         self,
-        attached_customer_id=None,
-        attached_plan_id=None,
-        attached_subscription_filters=None,
+        subscription_id=None,
         addon_id=None,
+        addon_version_id=None,
         flat_fee_behavior=None,
         usage_behavior=None,
         invoicing_behavior=None,
     ):
-        require("attached_customer_id", attached_customer_id, ID_TYPES)
-        require("attached_plan_id", attached_plan_id, ID_TYPES)
-        require("addon_id", addon_id, ID_TYPES)
-        for filter in attached_subscription_filters or []:
-            require("property_name", filter["property_name"], ID_TYPES)
-            require("value", filter["value"], ID_TYPES)
+        require("subscription_id", subscription_id, ID_TYPES)
+        if addon_id:
+            require("addon_id", addon_id, ID_TYPES)
+            assert (
+                addon_version_id is None
+            ), "addon_version_id must be None if addon_id is provided"
+        if addon_version_id:
+            require("addon_version_id", addon_version_id, ID_TYPES)
+            assert (
+                addon_id is None
+            ), "addon_id must be None if addon_version_id is provided"
+
         if flat_fee_behavior is not None:
             assert flat_fee_behavior in [
                 "refund",
@@ -779,14 +833,6 @@ class Client(object):
                 "invoice_now",
             ], "invoicing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
 
-        query = {
-            "attached_customer_id": attached_customer_id,
-            "attached_plan_id": attached_plan_id,
-            "addon_id": addon_id,
-        }
-        if attached_subscription_filters:
-            query["attached_subscription_filters"] = attached_subscription_filters
-
         body = {
             "$type": "cancel_addon",
         }
@@ -797,74 +843,87 @@ class Client(object):
         if invoicing_behavior:
             body["invoicing_behavior"] = invoicing_behavior
 
-        ret = self._enqueue(body, query=query, block=True)
-        if self.strict:
-            return [x.dict() for x in parse_obj_as(list[AddOnSubscriptionRecord], ret)]
+        if addon_id:
+            endpoint_url = (
+                f"/api/subscriptions/{subscription_id}/addons/{addon_id}/cancel/"
+            )
+        elif addon_version_id:
+            endpoint_url = f"/api/subscriptions/{subscription_id}/addons/{addon_version_id}/cancel/"
         else:
-            return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
+            raise ValueError("Either addon_id or addon_version_id must be provided")
 
-    def update_addon(
-        self,
-        attached_customer_id=None,
-        attached_plan_id=None,
-        attached_subscription_filters=None,
-        addon_id=None,
-        turn_off_auto_renew=None,
-        end_date=None,
-        quantity=None,
-        invoicing_behavior=None,
-    ):
-        require("attached_customer_id", attached_customer_id, ID_TYPES)
-        require("attached_plan_id", attached_plan_id, ID_TYPES)
-        require("addon_id", addon_id, ID_TYPES)
-        for filter in attached_subscription_filters or []:
-            require("property_name", filter["property_name"], ID_TYPES)
-            require("value", filter["value"], ID_TYPES)
-        if turn_off_auto_renew is not None:
-            require("turn_off_auto_renew", turn_off_auto_renew, bool)
-        if end_date is not None:
-            require("end_date", end_date, datetime)
-        if quantity is not None:
-            require("quantity", quantity, int)
-        if invoicing_behavior is not None:
-            assert invoicing_behavior in [
-                "add_to_next_invoice",
-                "invoice_now",
-            ], "invoicing_behavior must be one of 'add_to_next_invoice' or 'invoice_now'"
-
-        query = {
-            "attached_customer_id": attached_customer_id,
-            "attached_plan_id": attached_plan_id,
-            "addon_id": addon_id,
-        }
-        if attached_subscription_filters:
-            query["attached_subscription_filters"] = attached_subscription_filters
-
-        body = {
-            "$type": "cancel_addon",
-        }
-        if turn_off_auto_renew is not None:
-            body["turn_off_auto_renew"] = turn_off_auto_renew
-        if end_date is not None:
-            body["end_date"] = end_date
-        if quantity is not None:
-            body["quantity"] = quantity
-        if invoicing_behavior:
-            body["invoicing_behavior"] = invoicing_behavior
-
-        ret = self._enqueue(body, query=query, block=True)
+        ret = self._enqueue(body, block=True, endpoint_url=endpoint_url)
         if self.strict:
-            return [x.dict() for x in parse_obj_as(list[AddOnSubscriptionRecord], ret)]
+            return parse_obj_as(AddOnSubscriptionRecord, ret).dict()
         else:
-            return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
+            return AddOnSubscriptionRecord.construct(**ret).dict()
 
     def list_plans(
         self,
+        *,
+        duration=None,
+        exclude_tags=None,
+        include_tags=None,
+        include_tags_all=None,
+        version_currency_code=None,
+        version_custom_type=None,
+        version_status=None,
     ):
+        if duration is not None:
+            assert duration in [
+                "monthly",
+                "quarterly",
+                "yearly",
+            ], "duration must be one of 'monthly', 'quarterly', or 'yearly'"
+        if exclude_tags is not None:
+            require("exclude_tags", exclude_tags, list)
+            for tag in exclude_tags:
+                require("tag", tag, str)
+        if include_tags is not None:
+            require("include_tags", include_tags, list)
+            for tag in include_tags:
+                require("tag", tag, str)
+        if include_tags_all is not None:
+            require("include_tags_all", include_tags_all, list)
+            for tag in include_tags_all:
+                require("tag", tag, str)
+        if version_currency_code is not None:
+            require("version_currency_code", version_currency_code, ID_TYPES)
+        if version_custom_type is not None:
+            assert version_custom_type in [
+                "custom_only",
+                "public_only",
+                "all",
+            ], "version_custom_type must be one of 'custom_only', 'public_only', or 'all'"
+        if version_status is not None:
+            require("version_status", version_status, list)
+            version_status = list(set(version_status))
+            for status in version_status:
+                assert status in [
+                    "active",
+                    "ended",
+                    "not_started",
+                ], "version_status must be one of 'active' or 'ended' or 'not_started'"
 
         body = {
             "$type": "list_plans",
         }
+
+        query = {}
+        if duration is not None:
+            query["duration"] = duration
+        if exclude_tags is not None:
+            query["exclude_tags"] = exclude_tags
+        if include_tags is not None:
+            query["include_tags"] = include_tags
+        if include_tags_all is not None:
+            query["include_tags_all"] = include_tags_all
+        if version_currency_code is not None:
+            query["version_currency_code"] = version_currency_code
+        if version_custom_type is not None:
+            query["version_custom_type"] = version_custom_type
+        if version_status is not None:
+            query["version_status"] = version_status
 
         ret = self._enqueue(body, block=True)
         if self.strict:
@@ -999,7 +1058,7 @@ class Client(object):
         else:
             return FeatureAccessResponse.construct(**ret).dict()
 
-    def _enqueue(self, body, query=None, block=False):
+    def _enqueue(self, body, query=None, block=False, endpoint_url=None):
         """Push a new `body` onto the queue, return `(success, body)`"""
         body["library"] = "lotus-python"
         body["library_version"] = VERSION
@@ -1018,10 +1077,11 @@ class Client(object):
 
         if self.sync_mode or block:
             operation = body["$type"]
-            endpoint_url = self.operations[operation]["url"]
-            if "$append_to_url" in body:
-                endpoint_url = endpoint_url + body["$append_to_url"] + "/"
-                del body["$append_to_url"]
+            if endpoint_url is None:
+                endpoint_url = self.operations[operation]["url"]
+                if "$append_to_url" in body:
+                    endpoint_url = endpoint_url + body["$append_to_url"] + "/"
+            body.pop("$append_to_url", None)
             if self.host:
                 endpoint_host = self.host + endpoint_url
             else:
