@@ -146,13 +146,11 @@ class TestEndtoEnd:
         assert sub["auto_renew"] is False
 
         # SWITCH SUBSCRIPTION
-        print("Switching subscription", subscription_id, "to", switch_plan_id)
         sub = lotus.switch_subscription_plan(
             subscription_id=subscription_id,
             switch_plan_id=switch_plan_id,
         )
         subscription_id = sub["subscription_id"]
-        print("Switched subscription to ", subscription_id)
 
         ## CANCEL ADDON
         response = lotus.cancel_addon(
