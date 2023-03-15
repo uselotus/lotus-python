@@ -854,9 +854,9 @@ class Client(object):
 
         ret = self._enqueue(body, block=True, endpoint_url=endpoint_url)
         if self.strict:
-            return [x.dict() for x in parse_obj_as(list[AddOnSubscriptionRecord], ret)]
+            return parse_obj_as(AddOnSubscriptionRecord, ret).dict()
         else:
-            return [AddOnSubscriptionRecord.construct(**x).dict() for x in ret]
+            return AddOnSubscriptionRecord.construct(**ret).dict()
 
     def list_plans(
         self,
