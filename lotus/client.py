@@ -939,7 +939,7 @@ class Client(object):
         require("plan_id", plan_id, ID_TYPES)
 
         body = {
-            "$type": "get_customer",
+            "$type": "get_plan",
             "$append_to_url": plan_id,
         }
         ret = self._enqueue(body, block=True)
